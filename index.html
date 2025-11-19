@@ -248,7 +248,7 @@
                 <i class="fas fa-chevron-down text-xs opacity-50"></i>
             </div>
             <div id="sub-con" class="hidden pl-4 space-y-1">
-                <div onclick="app.navTo('list', this)" class="menu-item p-2 text-xs pl-9">รายการทั้งหมด</div>
+                <div onclick="app.navTo('list', this, '')" class="menu-item p-2 text-xs pl-9">รายการทั้งหมด</div>
                 <div onclick="app.navTo('list', this, 'Approved')" class="menu-item p-2 text-xs pl-9">รออนุมัติ</div>
                 <div onclick="app.navTo('list', this, 'Active')" class="menu-item p-2 text-xs pl-9">ในระบบ</div>
                 <div onclick="app.navTo('list', this, 'Cancelled')" class="menu-item p-2 text-xs pl-9">ยกเลิก</div>
@@ -276,6 +276,8 @@
             </div>
             <div id="sub-settings" class="hidden pl-4 space-y-1">
                 <div onclick="app.navTo('receipts', this)" class="menu-item p-2 text-xs pl-9">ตั้งค่าใบเสร็จ</div>
+                <div onclick="app.navTo('users', this)" class="menu-item p-2 text-xs pl-9">จัดการผู้ใช้</div>
+                <div onclick="app.navTo('reports', this)" class="menu-item p-2 text-xs pl-9">รายงานการเงิน</div>
                 <div onclick="app.showStatusLogs()" class="menu-item p-2 text-xs pl-9">ดูประวัติการเปลี่ยนสถานะ</div>
                 <div onclick="app.showCallLogs()" class="menu-item p-2 text-xs pl-9">ดูประวัติการติดต่อลูกค้า</div>
                 <div onclick="app.openUploadSettings()" class="menu-item p-2 text-xs pl-9">ตั้งค่า Upload Token</div>
@@ -307,9 +309,6 @@
                         <div id="user-role" class="text-[10px] text-gray-500">Not signed in</div>
                     </div>
                 </div>
-                <button title="Settings" onclick="app.openSettings()" class="text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-full text-xs font-medium transition"><i class="fas fa-cog"></i></button>
-                <button id="btn-login" onclick="app.showLogin()" class="text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-full text-xs font-bold transition"><i class="fas fa-right-to-bracket mr-2"></i> Login</button>
-                <button id="btn-logout" onclick="app.logout()" class="text-red-500 hover:bg-red-50 px-4 py-2 rounded-full text-xs font-bold transition hidden"><i class="fas fa-power-off mr-2"></i> Logout</button>
             </div>
         </header>
 
@@ -565,6 +564,54 @@
                     </div>
                     <div class="mt-8 text-right">
                         <button onclick="app.saveReceiptSettings()" class="btn-apple btn-primary px-6 py-2 shadow-lg">บันทึกการตั้งค่า</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management View -->
+            <div id="view-users" class="page-view hidden fade-in max-w-6xl mx-auto">
+                <div class="glass-panel p-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-2xl font-bold mb-1">จัดการผู้ใช้งาน</h3>
+                            <p class="text-sm text-gray-500">เพิ่ม แก้ไข หรือลบบัญชีผู้ใช้ในระบบ</p>
+                        </div>
+                        <button onclick="app.addNewUser()" class="btn-apple btn-primary px-4 py-2">
+                            <i class="fas fa-plus mr-2"></i> เพิ่มผู้ใช้
+                        </button>
+                    </div>
+                    <div id="users-table-container"></div>
+                </div>
+            </div>
+
+            <!-- Financial Reports View -->
+            <div id="view-reports" class="page-view hidden fade-in max-w-7xl mx-auto">
+                <div class="glass-panel p-8">
+                    <h3 class="text-2xl font-bold mb-6">รายงานการเงิน</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl border border-green-200">
+                            <p class="text-xs text-green-700 uppercase font-bold mb-2">รายรับทั้งหมด</p>
+                            <h3 class="text-3xl font-bold text-green-600" id="report-total-income">0 ฿</h3>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border border-blue-200">
+                            <p class="text-xs text-blue-700 uppercase font-bold mb-2">ยอดค้างรับ</p>
+                            <h3 class="text-3xl font-bold text-blue-600" id="report-pending">0 ฿</h3>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl border border-purple-200">
+                            <p class="text-xs text-purple-700 uppercase font-bold mb-2">สัญญาทั้งหมด</p>
+                            <h3 class="text-3xl font-bold text-purple-600" id="report-total-contracts">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border p-6 mb-6">
+                        <h4 class="font-bold text-lg mb-4">รายละเอียดตามสถานะ</h4>
+                        <div id="report-by-status" class="space-y-2"></div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border p-6">
+                        <h4 class="font-bold text-lg mb-4">ประวัติการชำระเงิน</h4>
+                        <div id="report-payment-history"></div>
                     </div>
                 </div>
             </div>
@@ -1039,16 +1086,47 @@
                 if(el) { $('.menu-item').removeClass('active'); $(el).addClass('active'); }
                 $('.page-view').addClass('hidden');
                 
-                if(page === 'dashboard') { $('#view-dashboard').removeClass('hidden'); $('#page-title').text('Overview'); this.renderDashboard(); }
+                if(page === 'dashboard') { 
+                    $('#view-dashboard').removeClass('hidden'); 
+                    $('#page-title').text('Overview'); 
+                    this.renderDashboard(); 
+                }
                 else if (page === 'list') { 
                     $('#view-list').removeClass('hidden'); 
-                    $('#page-title').text('รายการสัญญา'); 
-                    if(filter) $('#filter-status').val(filter); 
+                    $('#page-title').text('รายการสัญญา');
+                    // Set filter - empty string means show all
+                    $('#filter-status').val(filter || ''); 
                     this.renderTable(); 
                 }
-                else if (page.startsWith('assets')) { $('#view-assets').removeClass('hidden'); this.renderAssets(page); }
-                else if (page === 'customers') { $('#view-customers').removeClass('hidden'); $('#page-title').text('ลูกค้า (CRM)'); this.renderCustomers(); }
-                else { $('#view-' + page).removeClass('hidden'); $('#page-title').text('System'); }
+                else if (page.startsWith('assets')) { 
+                    $('#view-assets').removeClass('hidden'); 
+                    $('#page-title').text('สินทรัพย์');
+                    this.renderAssets(page); 
+                }
+                else if (page === 'customers') { 
+                    $('#view-customers').removeClass('hidden'); 
+                    $('#page-title').text('ลูกค้า (CRM)'); 
+                    this.renderCustomers(); 
+                }
+                else if (page === 'users') {
+                    $('#view-users').removeClass('hidden');
+                    $('#page-title').text('จัดการผู้ใช้');
+                    this.renderUsers();
+                }
+                else if (page === 'reports') {
+                    $('#view-reports').removeClass('hidden');
+                    $('#page-title').text('รายงานการเงิน');
+                    this.renderReports();
+                }
+                else if (page === 'receipts') {
+                    $('#view-receipts').removeClass('hidden');
+                    $('#page-title').text('ตั้งค่าใบเสร็จ');
+                    this.loadReceiptSettings();
+                }
+                else { 
+                    $('#view-' + page).removeClass('hidden'); 
+                    $('#page-title').text('System'); 
+                }
             },
             
             scrollTo: function(id) { document.getElementById(id).scrollIntoView({behavior:'smooth', block:'center'}); },
@@ -1759,20 +1837,32 @@
             },
 
             openCustomer: function(nameEnc, phoneEnc){
-                const name = decodeURIComponent(nameEnc);
-                const phone = decodeURIComponent(phoneEnc);
-                const contracts = this.data.contracts.filter(c => c.name === name && (phone === '' || c.phone === phone));
+                const name = decodeURIComponent(nameEnc).trim();
+                const phone = decodeURIComponent(phoneEnc).trim();
+                
+                // Filter contracts by matching name AND phone (with trimming for safety)
+                // If phone is empty, match only by name
+                const contracts = this.data.contracts.filter(c => {
+                    const cName = (c.name || '').trim();
+                    const cPhone = (c.phone || '').trim();
+                    return cName === name && (phone === '' || cPhone === phone);
+                });
+                
                 const body = $('#cust-body');
                 body.empty();
-                body.append(`<div class="mb-3"><strong>${name}</strong> <div class="text-xs text-gray-500">${phone}</div></div>`);
-                if(contracts.length === 0) { body.append('<div class="text-sm text-gray-500">ไม่พบสัญญาของลูกค้านี้</div>'); }
+                body.append(`<div class="mb-3"><strong>${name}</strong> <div class="text-xs text-gray-500">${phone || 'ไม่มีเบอร์โทร'}</div></div>`);
+                
+                if(contracts.length === 0) { 
+                    body.append('<div class="text-sm text-gray-500">ไม่พบสัญญาของลูกค้านี้</div>'); 
+                }
                 else{
-                    const table = $(`<table class="w-full text-sm"><thead class="text-xs text-gray-500"><tr><th class="px-2">สัญญา</th><th class="px-2">สถานะ</th><th class="px-2 text-right">คงเหลือ</th><th></th></tr></thead><tbody></tbody></table>`);
+                    const table = $(`<table class="w-full text-sm border-collapse"><thead class="text-xs text-gray-500 border-b"><tr><th class="px-2 py-2 text-left">สัญญา</th><th class="px-2 py-2 text-left">สถานะ</th><th class="px-2 py-2 text-right">คงเหลือ</th><th class="px-2 py-2"></th></tr></thead><tbody></tbody></table>`);
                     contracts.forEach(c=>{
-                        table.find('tbody').append(`<tr><td class="px-2 py-2 font-mono">${c.id}</td><td class="px-2 py-2 text-xs">${c.status}</td><td class="px-2 py-2 text-right font-bold">${((c.total||0)-(c.paid||0)).toLocaleString()}</td><td class="px-2 py-2 text-right"><button class="btn-secondary px-2 py-1 text-xs" onclick="app.openDetail('${c.id}');app.closeModal('modal-customer')">Open</button></td></tr>`);
+                        table.find('tbody').append(`<tr class="border-b hover:bg-gray-50"><td class="px-2 py-2 font-mono">${c.id}</td><td class="px-2 py-2 text-xs">${c.status}</td><td class="px-2 py-2 text-right font-bold">${((c.total||0)-(c.paid||0)).toLocaleString()}</td><td class="px-2 py-2 text-right"><button class="btn-secondary px-2 py-1 text-xs" onclick="app.openDetail('${c.id}');app.closeModal('modal-customer')">Open</button></td></tr>`);
                     });
                     body.append(table);
                 }
+                
                 // store last opened customer for export
                 this._lastCustomer = { name: name, phone: phone, contracts: contracts };
                 $('#cust-title').text(`ลูกค้า: ${name}`);
@@ -2044,6 +2134,269 @@
                 localStorage.setItem('upload_token', token);
                 this.closeModal('modal-settings');
                 Swal.fire({ icon: 'success', title: 'บันทึกการตั้งค่าแล้ว' });
+            },
+
+            // User Management Functions
+            renderUsers: function() {
+                const users = JSON.parse(localStorage.getItem(this.usersKey) || '[]');
+                const container = $('#users-table-container');
+                container.empty();
+
+                if (users.length === 0) {
+                    container.html('<p class="text-gray-500 text-center py-8">ไม่มีผู้ใช้ในระบบ</p>');
+                    return;
+                }
+
+                const table = $('<table class="w-full"></table>');
+                table.append(`
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700">Username</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700">Display Name</th>
+                            <th class="px-4 py-3 text-left text-xs font-bold text-gray-700">Role</th>
+                            <th class="px-4 py-3 text-center text-xs font-bold text-gray-700">Actions</th>
+                        </tr>
+                    </thead>
+                `);
+
+                const tbody = $('<tbody class="divide-y"></tbody>');
+                users.forEach((user, idx) => {
+                    const row = $(`
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-mono text-sm">${user.username}</td>
+                            <td class="px-4 py-3 text-sm">${user.displayName || user.username}</td>
+                            <td class="px-4 py-3">
+                                <span class="badge ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">${user.role}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <button onclick="app.editUser(${idx})" class="btn-secondary px-3 py-1 text-xs mr-2">
+                                    <i class="fas fa-edit"></i> แก้ไข
+                                </button>
+                                <button onclick="app.deleteUser(${idx})" class="text-red-500 hover:bg-red-50 px-3 py-1 rounded text-xs">
+                                    <i class="fas fa-trash"></i> ลบ
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                    tbody.append(row);
+                });
+
+                table.append(tbody);
+                container.append(table);
+            },
+
+            addNewUser: function() {
+                Swal.fire({
+                    title: 'เพิ่มผู้ใช้ใหม่',
+                    html: `
+                        <input id="new-username" class="swal2-input" placeholder="Username">
+                        <input id="new-password" type="password" class="swal2-input" placeholder="Password">
+                        <input id="new-displayname" class="swal2-input" placeholder="Display Name">
+                        <select id="new-role" class="swal2-input">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'เพิ่ม',
+                    cancelButtonText: 'ยกเลิก',
+                    preConfirm: () => {
+                        const username = $('#new-username').val();
+                        const password = $('#new-password').val();
+                        const displayName = $('#new-displayname').val();
+                        const role = $('#new-role').val();
+
+                        if (!username || !password) {
+                            Swal.showValidationMessage('กรุณากรอก Username และ Password');
+                            return false;
+                        }
+
+                        return { username, password, displayName, role };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const users = JSON.parse(localStorage.getItem(this.usersKey) || '[]');
+                        users.push(result.value);
+                        localStorage.setItem(this.usersKey, JSON.stringify(users));
+                        this.renderUsers();
+                        Swal.fire({ icon: 'success', title: 'เพิ่มผู้ใช้สำเร็จ' });
+                    }
+                });
+            },
+
+            editUser: function(index) {
+                const users = JSON.parse(localStorage.getItem(this.usersKey) || '[]');
+                const user = users[index];
+
+                Swal.fire({
+                    title: 'แก้ไขผู้ใช้',
+                    html: `
+                        <input id="edit-username" class="swal2-input" value="${user.username}" readonly>
+                        <input id="edit-password" type="password" class="swal2-input" placeholder="New Password (leave blank to keep current)">
+                        <input id="edit-displayname" class="swal2-input" value="${user.displayName || ''}" placeholder="Display Name">
+                        <select id="edit-role" class="swal2-input">
+                            <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึก',
+                    cancelButtonText: 'ยกเลิก',
+                    preConfirm: () => {
+                        const password = $('#edit-password').val();
+                        const displayName = $('#edit-displayname').val();
+                        const role = $('#edit-role').val();
+
+                        return { password, displayName, role };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (result.value.password) {
+                            users[index].password = result.value.password;
+                        }
+                        users[index].displayName = result.value.displayName;
+                        users[index].role = result.value.role;
+                        localStorage.setItem(this.usersKey, JSON.stringify(users));
+                        this.renderUsers();
+                        Swal.fire({ icon: 'success', title: 'แก้ไขสำเร็จ' });
+                    }
+                });
+            },
+
+            deleteUser: function(index) {
+                Swal.fire({
+                    title: 'ยืนยันการลบ?',
+                    text: 'การกระทำนี้ไม่สามารถย้อนกลับได้',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'ลบ',
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: '#ef4444'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const users = JSON.parse(localStorage.getItem(this.usersKey) || '[]');
+                        users.splice(index, 1);
+                        localStorage.setItem(this.usersKey, JSON.stringify(users));
+                        this.renderUsers();
+                        Swal.fire({ icon: 'success', title: 'ลบผู้ใช้สำเร็จ' });
+                    }
+                });
+            },
+
+            // Financial Reports Functions
+            renderReports: function() {
+                const contracts = this.data.contracts || [];
+                
+                // Calculate totals
+                const totalIncome = contracts.reduce((sum, c) => sum + (c.paid || 0), 0);
+                const totalPending = contracts.reduce((sum, c) => sum + ((c.total || 0) - (c.paid || 0)), 0);
+                const totalContracts = contracts.length;
+
+                $('#report-total-income').text(totalIncome.toLocaleString() + ' ฿');
+                $('#report-pending').text(totalPending.toLocaleString() + ' ฿');
+                $('#report-total-contracts').text(totalContracts);
+
+                // Group by status
+                const byStatus = {};
+                contracts.forEach(c => {
+                    const status = c.status || 'Unknown';
+                    if (!byStatus[status]) {
+                        byStatus[status] = { count: 0, total: 0, paid: 0, pending: 0 };
+                    }
+                    byStatus[status].count++;
+                    byStatus[status].total += (c.total || 0);
+                    byStatus[status].paid += (c.paid || 0);
+                    byStatus[status].pending += ((c.total || 0) - (c.paid || 0));
+                });
+
+                const statusContainer = $('#report-by-status');
+                statusContainer.empty();
+
+                const statusColors = {
+                    'Active': 'green',
+                    'Approved': 'blue',
+                    'Cancelled': 'red',
+                    'Closed': 'gray',
+                    'Asset Return': 'orange'
+                };
+
+                Object.keys(byStatus).forEach(status => {
+                    const data = byStatus[status];
+                    const color = statusColors[status] || 'gray';
+                    
+                    statusContainer.append(`
+                        <div class="flex justify-between items-center p-4 border rounded-lg mb-2">
+                            <div class="flex items-center gap-3">
+                                <span class="badge bg-${color}-100 text-${color}-700">${status}</span>
+                                <span class="text-sm text-gray-600">${data.count} สัญญา</span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm">
+                                    <span class="text-gray-500">เก็บได้:</span>
+                                    <span class="font-bold text-green-600">${data.paid.toLocaleString()} ฿</span>
+                                </div>
+                                <div class="text-sm">
+                                    <span class="text-gray-500">ค้างรับ:</span>
+                                    <span class="font-bold text-red-600">${data.pending.toLocaleString()} ฿</span>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                });
+
+                // Payment history
+                const paymentHistory = $('#report-payment-history');
+                paymentHistory.empty();
+
+                const allPayments = [];
+                contracts.forEach(c => {
+                    if (c.payments && c.payments.length > 0) {
+                        c.payments.forEach(p => {
+                            allPayments.push({
+                                ...p,
+                                contractId: c.id,
+                                customerName: c.name
+                            });
+                        });
+                    }
+                });
+
+                if (allPayments.length === 0) {
+                    paymentHistory.html('<p class="text-gray-500 text-center py-4">ยังไม่มีประวัติการชำระเงิน</p>');
+                } else {
+                    const table = $('<table class="w-full text-sm"></table>');
+                    table.append(`
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-3 py-2 text-left text-xs font-bold">วันที่</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold">สัญญา</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold">ลูกค้า</th>
+                                <th class="px-3 py-2 text-right text-xs font-bold">จำนวนเงิน</th>
+                                <th class="px-3 py-2 text-left text-xs font-bold">ใบเสร็จ</th>
+                            </tr>
+                        </thead>
+                    `);
+
+                    const tbody = $('<tbody class="divide-y"></tbody>');
+                    allPayments.slice(0, 20).forEach(p => {
+                        tbody.append(`
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-2">${p.date || '-'}</td>
+                                <td class="px-3 py-2 font-mono">${p.contractId}</td>
+                                <td class="px-3 py-2">${p.customerName}</td>
+                                <td class="px-3 py-2 text-right font-bold">${(p.amount || 0).toLocaleString()} ฿</td>
+                                <td class="px-3 py-2 font-mono text-xs">${p.receipt || '-'}</td>
+                            </tr>
+                        `);
+                    });
+
+                    table.append(tbody);
+                    paymentHistory.append(table);
+                    
+                    if (allPayments.length > 20) {
+                        paymentHistory.append(`<p class="text-xs text-gray-500 text-center mt-2">แสดง 20 รายการล่าสุด (ทั้งหมด ${allPayments.length} รายการ)</p>`);
+                    }
+                }
             }
         };
 
