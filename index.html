@@ -834,19 +834,30 @@
         </div>
     </div>
 
-    <div id="modal-customer" class="fixed inset-0 z-55 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h4 id="cust-title" class="font-bold">Customer</h4>
-                <button onclick="app.closeModal('modal-customer')" class="text-gray-500"><i class="fas fa-times"></i></button>
+    <div id="modal-customer" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-auto">
+            <div class="flex justify-between items-center mb-4 sticky top-0 bg-white pb-3 border-b">
+                <h4 id="cust-title" class="font-bold text-lg">รายการสัญญาของลูกค้า</h4>
+                <button onclick="app.closeModal('modal-customer')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
             </div>
-            <div id="cust-body" class="max-h-[60vh] overflow-auto text-sm">
-                <!-- filled dynamically -->
+            <div id="cust-body" class="text-sm">
+                <!-- filled dynamically by openCustomer() -->
             </div>
-            <div class="mt-4 text-right">
-                <button onclick="app.exportCustomerContracts()" class="btn-secondary px-4 py-2 mr-2">Export CSV</button>
-                <button onclick="app.addSamplePayments()" class="btn-secondary px-4 py-2 mr-2">Add Sample Payments</button>
-                <button onclick="app.closeModal('modal-customer')" class="btn-apple btn-primary px-4 py-2">Close</button>
+            <div class="mt-4 pt-4 border-t flex justify-between items-center">
+                <div class="text-xs text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    คลิก "Open" เพื่อดูรายละเอียดสัญญาแบบเต็ม
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="app.exportCustomerContracts()" class="btn-secondary px-4 py-2 text-sm">
+                        <i class="fas fa-download mr-2"></i>Export CSV
+                    </button>
+                    <button onclick="app.closeModal('modal-customer')" class="btn-apple btn-primary px-4 py-2 text-sm">
+                        Close
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1364,9 +1375,10 @@
             },
 
             loadMockData: function() {
+                const currentCount = this.data.contracts.length;
                 Swal.fire({
                     title: 'Load Mock Data?',
-                    text: 'This will add sample contracts for testing. Current data will be kept.',
+                    html: `This will add 5 sample contracts for testing.<br><br>Current contracts: <strong>${currentCount}</strong><br>After loading: <strong>${currentCount + 5}</strong>`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Yes, load it!',
@@ -1374,22 +1386,33 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         const mockContracts = [
-                            { id: 'C-2001', name: 'ทดสอบ ระบบ', phone: '081-111-1111', date: '2024-03-01', status: 'Active', total: 45000, paid: 25000, before: 5000, installments: 12, payments: [], fee_paid: true, cost: 25000, resale: 0, nationalId: '1234567890123', address: '123 ถนนทดสอบ' },
-                            { id: 'C-2002', name: 'ตัวอย่าง ข้อมูล', phone: '082-222-2222', date: '2024-04-15', status: 'Approved', total: 60000, paid: 0, before: 10000, installments: 18, payments: [], fee_paid: false, cost: 35000, resale: 0, nationalId: '9876543210987', address: '456 ถนนสมมติ' },
-                            { id: 'C-2003', name: 'ตัวอย่าง สอง', phone: '083-333-3333', date: '2023-12-01', status: 'Closed', total: 30000, paid: 30000, before: 3000, installments: 10, payments: [], fee_paid: true, cost: 18000, resale: 0, nationalId: '1111222233334', address: '789 ถนนจำลอง' },
-                            { id: 'C-2004', name: 'ทดสอบ ค้างชำระ', phone: '084-444-4444', date: '2023-06-01', status: 'Active', total: 50000, paid: 10000, before: 5000, installments: 15, payments: [], fee_paid: false, cost: 28000, resale: 0, nationalId: '5555666677778', address: '321 ถนนตัวอย่าง' },
-                            { id: 'C-2005', name: 'ลูกค้า ยกเลิก', phone: '085-555-5555', date: '2024-02-01', status: 'Cancelled', total: 40000, paid: 5000, before: 0, installments: 12, payments: [], fee_paid: false, cost: 22000, resale: 18000, nationalId: '9999888877776', address: '654 ถนนจำลอง' }
+                            { id: 'C-2001', name: 'ทดสอบ ระบบ', phone: '081-111-1111', nationalId: '1234567890123', address: '123 ถนนทดสอบ เขตบางกะปิ กรุงเทพฯ', date: '2024-03-01', status: 'Active', total: 45000, paid: 25000, before: 5000, installments: 12, payments: [], fee_paid: true, cost: 25000, resale: 0, timeline: [] },
+                            { id: 'C-2002', name: 'ตัวอย่าง ข้อมูล', phone: '082-222-2222', nationalId: '9876543210987', address: '456 ถนนสมมติ เขตดินแดง กรุงเทพฯ', date: '2024-04-15', status: 'Approved', total: 60000, paid: 0, before: 10000, installments: 18, payments: [], fee_paid: false, cost: 35000, resale: 0, timeline: [] },
+                            { id: 'C-2003', name: 'ตัวอย่าง สอง', phone: '083-333-3333', nationalId: '1111222233334', address: '789 ถนนจำลอง เขตห้วยขวาง กรุงเทพฯ', date: '2023-12-01', status: 'Closed', total: 30000, paid: 30000, before: 3000, installments: 10, payments: [], fee_paid: true, cost: 18000, resale: 0, timeline: [] },
+                            { id: 'C-2004', name: 'ทดสอบ ค้างชำระ', phone: '084-444-4444', nationalId: '5555666677778', address: '321 ถนนตัวอย่าง เขตลาดพร้าว กรุงเทพฯ', date: '2023-06-01', status: 'Active', total: 50000, paid: 10000, before: 5000, installments: 15, payments: [], fee_paid: false, cost: 28000, resale: 0, timeline: [] },
+                            { id: 'C-2005', name: 'ลูกค้า ยกเลิก', phone: '085-555-5555', nationalId: '9999888877776', address: '654 ถนนจำลอง เขตสะพานควาย กรุงเทพฯ', date: '2024-02-01', status: 'Cancelled', total: 40000, paid: 5000, before: 0, installments: 12, payments: [], fee_paid: false, cost: 22000, resale: 18000, timeline: [] }
                         ];
                         
-                        this.data.contracts.push(...mockContracts);
+                        // Check for duplicates before adding
+                        let added = 0;
+                        mockContracts.forEach(mock => {
+                            const exists = this.data.contracts.find(c => c.id === mock.id);
+                            if (!exists) {
+                                this.data.contracts.push(mock);
+                                added++;
+                            }
+                        });
+                        
                         this.saveData();
                         this.renderTable();
+                        this.renderCustomers();
+                        this.renderDashboard();
                         
                         Swal.fire({
                             icon: 'success',
                             title: 'Mock Data Loaded!',
-                            text: `Added ${mockContracts.length} sample contracts`,
-                            timer: 2000,
+                            html: `Added <strong>${added}</strong> new contracts<br>Total: <strong>${this.data.contracts.length}</strong> contracts`,
+                            timer: 2500,
                             showConfirmButton: false
                         });
                     }
@@ -2425,9 +2448,9 @@
             // Financial Reports Functions
             renderReports: function() {
                 const contracts = this.data.contracts || [];
-                const filterStatus = $('#report-filter-status').val();
+                const filterStatus = $('#report-filter-status').val() || '';
                 
-                // Filter contracts
+                // Filter contracts by status
                 const filtered = filterStatus ? contracts.filter(c => c.status === filterStatus) : contracts;
                 
                 // Calculate totals
