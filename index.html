@@ -1385,12 +1385,158 @@
                     cancelButtonText: 'Cancel'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        const today = new Date();
                         const mockContracts = [
-                            { id: 'C-2001', name: 'ทดสอบ ระบบ', phone: '081-111-1111', nationalId: '1234567890123', address: '123 ถนนทดสอบ เขตบางกะปิ กรุงเทพฯ', date: '2024-03-01', status: 'Active', total: 45000, paid: 25000, before: 5000, installments: 12, payments: [], fee_paid: true, cost: 25000, resale: 0, timeline: [] },
-                            { id: 'C-2002', name: 'ตัวอย่าง ข้อมูล', phone: '082-222-2222', nationalId: '9876543210987', address: '456 ถนนสมมติ เขตดินแดง กรุงเทพฯ', date: '2024-04-15', status: 'Approved', total: 60000, paid: 0, before: 10000, installments: 18, payments: [], fee_paid: false, cost: 35000, resale: 0, timeline: [] },
-                            { id: 'C-2003', name: 'ตัวอย่าง สอง', phone: '083-333-3333', nationalId: '1111222233334', address: '789 ถนนจำลอง เขตห้วยขวาง กรุงเทพฯ', date: '2023-12-01', status: 'Closed', total: 30000, paid: 30000, before: 3000, installments: 10, payments: [], fee_paid: true, cost: 18000, resale: 0, timeline: [] },
-                            { id: 'C-2004', name: 'ทดสอบ ค้างชำระ', phone: '084-444-4444', nationalId: '5555666677778', address: '321 ถนนตัวอย่าง เขตลาดพร้าว กรุงเทพฯ', date: '2023-06-01', status: 'Active', total: 50000, paid: 10000, before: 5000, installments: 15, payments: [], fee_paid: false, cost: 28000, resale: 0, timeline: [] },
-                            { id: 'C-2005', name: 'ลูกค้า ยกเลิก', phone: '085-555-5555', nationalId: '9999888877776', address: '654 ถนนจำลอง เขตสะพานควาย กรุงเทพฯ', date: '2024-02-01', status: 'Cancelled', total: 40000, paid: 5000, before: 0, installments: 12, payments: [], fee_paid: false, cost: 22000, resale: 18000, timeline: [] }
+                            { 
+                                id: 'C-2001', 
+                                name: 'ทดสอบ ระบบ', 
+                                phone: '081-111-1111',
+                                phoneRef: '081-111-1112',
+                                nationalId: '1234567890123', 
+                                address: '123 ถนนทดสอบ เขตบางกะปิ กรุงเทพฯ 10240',
+                                addressWork: '456 อาคารสำนักงาน ถนนสุขุมวิท เขตคลองเตย กรุงเทพฯ',
+                                addressIdCard: '789 หมู่ 3 ต.บางกะปิ อ.ห้วยขวาง จ.กรุงเทพฯ 10240',
+                                date: '2024-03-01', 
+                                status: 'Active', 
+                                total: 45000, 
+                                paid: 25000, 
+                                before: 5000, 
+                                installments: 12,
+                                monthlyPayment: 3750,
+                                firstInstallmentDate: '2024-04-01',
+                                assetModel: 'iPhone 15 Pro',
+                                assetCapacity: '256GB',
+                                assetIMEI: '123456789012345',
+                                assetCost: 25000,
+                                downPayment: 5000,
+                                payments: [], 
+                                installmentSchedule: this._generateInstallmentSchedule('2024-04-01', 12, 3750, 5),
+                                fee_paid: true, 
+                                cost: 25000, 
+                                resale: 0, 
+                                timeline: [],
+                                createdAt: new Date('2024-03-01').toISOString()
+                            },
+                            { 
+                                id: 'C-2002', 
+                                name: 'ตัวอย่าง ข้อมูล', 
+                                phone: '082-222-2222',
+                                phoneRef: '082-222-2223',
+                                nationalId: '9876543210987', 
+                                address: '456 ถนนสมมติ เขตดินแดง กรุงเทพฯ 10400',
+                                addressWork: '789 อาคารทดสอบ ถนนรัชดา เขตดินแดง กรุงเทพฯ',
+                                addressIdCard: '456 หมู่ 5 ต.ดินแดง อ.ดินแดง จ.กรุงเทพฯ 10400',
+                                date: '2024-04-15', 
+                                status: 'Approved', 
+                                total: 60000, 
+                                paid: 0, 
+                                before: 10000, 
+                                installments: 18,
+                                monthlyPayment: 3333,
+                                firstInstallmentDate: '2024-05-15',
+                                assetModel: 'iPhone 15 Pro Max',
+                                assetCapacity: '512GB',
+                                assetIMEI: '987654321098765',
+                                assetCost: 35000,
+                                downPayment: 10000,
+                                payments: [], 
+                                installmentSchedule: this._generateInstallmentSchedule('2024-05-15', 18, 3333, 0),
+                                fee_paid: false, 
+                                cost: 35000, 
+                                resale: 0, 
+                                timeline: [],
+                                createdAt: new Date('2024-04-15').toISOString()
+                            },
+                            { 
+                                id: 'C-2003', 
+                                name: 'ตัวอย่าง สอง', 
+                                phone: '083-333-3333',
+                                phoneRef: '083-333-3334',
+                                nationalId: '1111222233334', 
+                                address: '789 ถนนจำลอง เขตห้วยขวาง กรุงเทพฯ 10310',
+                                addressWork: '123 อาคารตัวอย่าง ถนนพระราม 9 เขตห้วยขวาง กรุงเทพฯ',
+                                addressIdCard: '789 หมู่ 8 ต.ห้วยขวาง อ.ห้วยขวาง จ.กรุงเทพฯ 10310',
+                                date: '2023-12-01', 
+                                status: 'Closed', 
+                                total: 30000, 
+                                paid: 30000, 
+                                before: 3000, 
+                                installments: 10,
+                                monthlyPayment: 3000,
+                                firstInstallmentDate: '2024-01-01',
+                                assetModel: 'iPhone 14',
+                                assetCapacity: '128GB',
+                                assetIMEI: '111222333444555',
+                                assetCost: 18000,
+                                downPayment: 3000,
+                                payments: [], 
+                                installmentSchedule: this._generateInstallmentSchedule('2024-01-01', 10, 3000, 10),
+                                fee_paid: true, 
+                                cost: 18000, 
+                                resale: 0, 
+                                timeline: [],
+                                createdAt: new Date('2023-12-01').toISOString()
+                            },
+                            { 
+                                id: 'C-2004', 
+                                name: 'ทดสอบ ค้างชำระ', 
+                                phone: '084-444-4444',
+                                phoneRef: '084-444-4445',
+                                nationalId: '5555666677778', 
+                                address: '321 ถนนตัวอย่าง เขตลาดพร้าว กรุงเทพฯ 10230',
+                                addressWork: '654 อาคารสมมติ ถนนพหลโยธิน เขตจตุจักร กรุงเทพฯ',
+                                addressIdCard: '321 หมู่ 12 ต.ลาดพร้าว อ.ลาดพร้าว จ.กรุงเทพฯ 10230',
+                                date: '2023-06-01', 
+                                status: 'Active', 
+                                total: 50000, 
+                                paid: 10000, 
+                                before: 5000, 
+                                installments: 15,
+                                monthlyPayment: 3333,
+                                firstInstallmentDate: '2023-07-01',
+                                assetModel: 'Samsung Galaxy S23 Ultra',
+                                assetCapacity: '256GB',
+                                assetIMEI: '555666777888999',
+                                assetCost: 28000,
+                                downPayment: 5000,
+                                payments: [], 
+                                installmentSchedule: this._generateInstallmentSchedule('2023-07-01', 15, 3333, 3),
+                                fee_paid: false, 
+                                cost: 28000, 
+                                resale: 0, 
+                                timeline: [],
+                                createdAt: new Date('2023-06-01').toISOString()
+                            },
+                            { 
+                                id: 'C-2005', 
+                                name: 'ลูกค้า ยกเลิก', 
+                                phone: '085-555-5555',
+                                phoneRef: '085-555-5556',
+                                nationalId: '9999888877776', 
+                                address: '654 ถนนจำลอง เขตสะพานควาย กรุงเทพฯ 10510',
+                                addressWork: '987 อาคารทดลอง ถนนพญาไท เขตราชเทวี กรุงเทพฯ',
+                                addressIdCard: '654 หมู่ 15 ต.สะพานควาย อ.สะพานควาย จ.กรุงเทพฯ 10510',
+                                date: '2024-02-01', 
+                                status: 'Cancelled', 
+                                total: 40000, 
+                                paid: 5000, 
+                                before: 0, 
+                                installments: 12,
+                                monthlyPayment: 3333,
+                                firstInstallmentDate: '2024-03-01',
+                                assetModel: 'iPhone 14 Pro',
+                                assetCapacity: '256GB',
+                                assetIMEI: '999888777666555',
+                                assetCost: 22000,
+                                downPayment: 0,
+                                payments: [], 
+                                installmentSchedule: this._generateInstallmentSchedule('2024-03-01', 12, 3333, 2),
+                                fee_paid: false, 
+                                cost: 22000, 
+                                resale: 18000, 
+                                timeline: [],
+                                createdAt: new Date('2024-02-01').toISOString()
+                            }
                         ];
                         
                         // Check for duplicates before adding
@@ -1417,6 +1563,34 @@
                         });
                     }
                 });
+            },
+
+            // Generate installment schedule
+            _generateInstallmentSchedule: function(startDate, installments, monthlyPayment, paidCount = 0) {
+                const schedule = [];
+                const start = new Date(startDate);
+                
+                for (let i = 0; i < installments; i++) {
+                    const dueDate = new Date(start);
+                    dueDate.setMonth(dueDate.getMonth() + i);
+                    
+                    let paidDate = null;
+                    if (i < paidCount) {
+                        // Simulate paid dates (usually before or on due date)
+                        paidDate = new Date(dueDate);
+                        paidDate.setDate(dueDate.getDate() - Math.floor(Math.random() * 5));
+                    }
+                    
+                    schedule.push({
+                        period: i + 1,
+                        dueDate: dueDate.toISOString().slice(0, 10),
+                        amount: monthlyPayment,
+                        paidDate: paidDate ? paidDate.toISOString().slice(0, 10) : null,
+                        status: paidDate ? 'paid' : (new Date() > dueDate ? 'overdue' : 'pending')
+                    });
+                }
+                
+                return schedule;
             },
 
             renderTable: function() {
