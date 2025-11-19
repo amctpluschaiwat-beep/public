@@ -1374,6 +1374,33 @@
                 }
             },
 
+            // Generate installment schedule (must be defined before loadMockData)
+            _generateInstallmentSchedule: function(startDate, installments, monthlyPayment, paidCount = 0) {
+                const schedule = [];
+                const start = new Date(startDate);
+                
+                for (let i = 0; i < installments; i++) {
+                    const dueDate = new Date(start);
+                    dueDate.setMonth(dueDate.getMonth() + i);
+                    
+                    let paidDate = null;
+                    if (i < paidCount) {
+                        paidDate = new Date(dueDate);
+                        paidDate.setDate(dueDate.getDate() - Math.floor(Math.random() * 5));
+                    }
+                    
+                    schedule.push({
+                        period: i + 1,
+                        dueDate: dueDate.toISOString().slice(0, 10),
+                        amount: monthlyPayment,
+                        paidDate: paidDate ? paidDate.toISOString().slice(0, 10) : null,
+                        status: paidDate ? 'paid' : (new Date() > dueDate ? 'overdue' : 'pending')
+                    });
+                }
+                
+                return schedule;
+            },
+
             loadMockData: function() {
                 const currentCount = this.data.contracts.length;
                 Swal.fire({
@@ -1563,34 +1590,6 @@
                         });
                     }
                 });
-            },
-
-            // Generate installment schedule
-            _generateInstallmentSchedule: function(startDate, installments, monthlyPayment, paidCount = 0) {
-                const schedule = [];
-                const start = new Date(startDate);
-                
-                for (let i = 0; i < installments; i++) {
-                    const dueDate = new Date(start);
-                    dueDate.setMonth(dueDate.getMonth() + i);
-                    
-                    let paidDate = null;
-                    if (i < paidCount) {
-                        // Simulate paid dates (usually before or on due date)
-                        paidDate = new Date(dueDate);
-                        paidDate.setDate(dueDate.getDate() - Math.floor(Math.random() * 5));
-                    }
-                    
-                    schedule.push({
-                        period: i + 1,
-                        dueDate: dueDate.toISOString().slice(0, 10),
-                        amount: monthlyPayment,
-                        paidDate: paidDate ? paidDate.toISOString().slice(0, 10) : null,
-                        status: paidDate ? 'paid' : (new Date() > dueDate ? 'overdue' : 'pending')
-                    });
-                }
-                
-                return schedule;
             },
 
             renderTable: function() {
