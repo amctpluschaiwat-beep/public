@@ -589,31 +589,48 @@
             <!-- Financial Reports View -->
             <div id="view-reports" class="page-view hidden fade-in max-w-7xl mx-auto">
                 <div class="glass-panel p-8">
-                    <h3 class="text-2xl font-bold mb-6">รายงานการเงิน</h3>
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold">รายงานการเงิน</h3>
+                        <div class="flex gap-2">
+                            <select id="report-filter-status" onchange="app.renderReports()" class="apple-input text-sm">
+                                <option value="">ทุกสถานะ</option>
+                                <option value="Active">อยู่ในระบบ</option>
+                                <option value="Approved">รออนุมัติ</option>
+                                <option value="Closed">สิ้นสุด</option>
+                            </select>
+                            <button onclick="app.exportReports()" class="btn-apple btn-primary px-4 py-2">
+                                <i class="fas fa-download mr-2"></i>Export
+                            </button>
+                        </div>
+                    </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl border border-green-200">
-                            <p class="text-xs text-green-700 uppercase font-bold mb-2">รายรับทั้งหมด</p>
-                            <h3 class="text-3xl font-bold text-green-600" id="report-total-income">0 ฿</h3>
+                    <!-- Summary with Status Breakdown -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-2xl border border-green-200">
+                            <p class="text-xs text-green-700 uppercase font-bold mb-1">รายรับทั้งหมด</p>
+                            <h3 class="text-2xl font-bold text-green-600" id="report-total-income">0 ฿</h3>
+                            <p class="text-xs text-green-600 mt-2" id="report-income-detail"></p>
                         </div>
-                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border border-blue-200">
-                            <p class="text-xs text-blue-700 uppercase font-bold mb-2">ยอดค้างรับ</p>
-                            <h3 class="text-3xl font-bold text-blue-600" id="report-pending">0 ฿</h3>
+                        <div class="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-2xl border border-red-200">
+                            <p class="text-xs text-red-700 uppercase font-bold mb-1">ยอดค้างรับ</p>
+                            <h3 class="text-2xl font-bold text-red-600" id="report-pending">0 ฿</h3>
+                            <p class="text-xs text-red-600 mt-2" id="report-pending-detail"></p>
                         </div>
-                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl border border-purple-200">
-                            <p class="text-xs text-purple-700 uppercase font-bold mb-2">สัญญาทั้งหมด</p>
-                            <h3 class="text-3xl font-bold text-purple-600" id="report-total-contracts">0</h3>
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-2xl border border-blue-200">
+                            <p class="text-xs text-blue-700 uppercase font-bold mb-1">สัญญาทั้งหมด</p>
+                            <h3 class="text-2xl font-bold text-blue-600" id="report-total-contracts">0</h3>
+                            <p class="text-xs text-blue-600 mt-2" id="report-contracts-detail"></p>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-2xl border border-purple-200">
+                            <p class="text-xs text-purple-700 uppercase font-bold mb-1">สถานะสัญญา</p>
+                            <div id="report-status-summary" class="text-xs text-purple-700 mt-2 space-y-1"></div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl border p-6 mb-6">
-                        <h4 class="font-bold text-lg mb-4">รายละเอียดตามสถานะ</h4>
-                        <div id="report-by-status" class="space-y-2"></div>
-                    </div>
-
+                    <!-- Payment Details Table -->
                     <div class="bg-white rounded-2xl border p-6">
-                        <h4 class="font-bold text-lg mb-4">ประวัติการชำระเงิน</h4>
-                        <div id="report-payment-history"></div>
+                        <h4 class="font-bold text-lg mb-4">รายละเอียดการชำระเงิน</h4>
+                        <div id="report-payment-table" class="overflow-x-auto"></div>
                     </div>
                 </div>
             </div>
@@ -1133,7 +1150,15 @@
             },
             
             scrollTo: function(id) { document.getElementById(id).scrollIntoView({behavior:'smooth', block:'center'}); },
-            toggleSub: function(id) { $('#'+id).slideToggle(200); },
+            toggleSub: function(id) { 
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (el.classList.contains('hidden')) {
+                    el.classList.remove('hidden');
+                } else {
+                    el.classList.add('hidden');
+                }
+            },
             openModal: function(id) { $('#'+id).removeClass('hidden').addClass('flex'); },
             closeModal: function(id) { $('#'+id).addClass('hidden').removeClass('flex'); },
 
@@ -1775,6 +1800,20 @@
                     return;
                 }
 
+                // Add table header
+                wrap.append(`
+                    <div class="glass-panel p-3 mb-2 bg-gray-50 font-bold text-xs text-gray-600">
+                        <div class="grid grid-cols-8 gap-3">
+                            <div class="col-span-1">เลขสัญญา</div>
+                            <div class="col-span-1">ชื่อ-สกุล</div>
+                            <div class="col-span-1">กำหนดชำระ</div>
+                            <div class="col-span-1 text-center">จำนวนวันค้าง</div>
+                            <div class="col-span-1">สถานะชำระ</div>
+                            <div class="col-span-3 text-right">การดำเนินการ</div>
+                        </div>
+                    </div>
+                `);
+
                 // load overrides for payment quality
                 const overridesRaw = localStorage.getItem('payment_quality_overrides') || '{}';
                 let overrides = {};
@@ -1782,43 +1821,74 @@
 
                 filtered.forEach(entry => {
                     const key = (entry.name||'') + '|' + (entry.phone||'');
-                    // compute payment quality: if any contract is overdue -> not good
-                    const anyOverdue = entry.contracts.some(c => this.calcOverdue(c.date, c.status).isOverdue);
+                    
+                    // Calculate overdue information
+                    let overdueCount = 0;
+                    let maxOverdueDays = 0;
+                    let nextPaymentDate = '';
+                    
+                    entry.contracts.forEach(c => {
+                        const overdueInfo = this.calcOverdue(c.date, c.status);
+                        if (overdueInfo.isOverdue) {
+                            overdueCount++;
+                            if (overdueInfo.days > maxOverdueDays) {
+                                maxOverdueDays = overdueInfo.days;
+                            }
+                        }
+                        // Get next payment date (approximation based on contract date and installments)
+                        if (c.status === 'Active' && !nextPaymentDate) {
+                            const contractDate = new Date(c.date);
+                            const today = new Date();
+                            const daysSinceStart = Math.floor((today - contractDate) / (1000 * 60 * 60 * 24));
+                            const monthsSinceStart = Math.floor(daysSinceStart / 30);
+                            const nextMonth = new Date(contractDate);
+                            nextMonth.setMonth(nextMonth.getMonth() + monthsSinceStart + 1);
+                            nextPaymentDate = nextMonth.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        }
+                    });
+                    
+                    // Format overdue display
+                    let overdueDisplay = '-';
+                    if (overdueCount > 0) {
+                        const years = Math.floor(maxOverdueDays / 365);
+                        const months = Math.floor((maxOverdueDays % 365) / 30);
+                        const days = maxOverdueDays % 30;
+                        const parts = [];
+                        if (years) parts.push(`${years}ปี`);
+                        if (months) parts.push(`${months}ด`);
+                        if (days) parts.push(`${days}ว`);
+                        overdueDisplay = `<span class="text-red-600 font-bold">${parts.join(' ')}</span>`;
+                    }
+                    
+                    // Compute payment quality
+                    const anyOverdue = overdueCount > 0;
                     let quality = anyOverdue ? 'ไม่ดี' : 'ดี';
                     if(overrides[key]) quality = overrides[key];
 
-                    // pick a representative contract id to link quick-open (first contract)
+                    // Pick a representative contract id to link quick-open (first contract)
                     const repCon = entry.contracts[0] ? entry.contracts[0].id : '';
 
                     const row = $(
-                        `<div class="glass-panel p-3 flex items-center justify-between mb-2 customer-row">
-                            <div class="flex-1 grid grid-cols-6 gap-4 items-center">
+                        `<div class="glass-panel p-3 mb-2 customer-row">
+                            <div class="grid grid-cols-8 gap-3 items-center text-sm">
                                 <div class="col-span-1 font-mono text-sm text-gray-700">${repCon || '-'}</div>
-                                <div class="col-span-2 font-bold text-gray-900">${entry.name}</div>
-                                <div class="col-span-1 text-sm text-gray-600">${entry.nationalId || '-'}</div>
-                                <div class="col-span-1 text-sm text-gray-600 truncate">${entry.address || '-'}</div>
-                                <div class="col-span-1 text-sm text-gray-600">${entry.phone || '-'}</div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <div class="text-xs text-gray-500 mr-2">ประวัติ: <strong class="text-sm text-${ anyOverdue ? 'red' : 'green' }-600">${quality}</strong></div>
-                                <button class="btn-secondary px-3 py-1 text-xs" onclick="app.openCustomer('${encodeURIComponent(entry.name)}','${encodeURIComponent(entry.phone||'')}')">ดูสัญญา</button>
-                                <button class="btn-apple px-3 py-1 text-xs btn-primary" onclick="app.recordCall('${entry.phone||''}','${encodeURIComponent(entry.name)}','${repCon}')">โทรทันที</button>
+                                <div class="col-span-1 font-bold text-gray-900">${entry.name}</div>
+                                <div class="col-span-1 text-sm text-gray-600">${nextPaymentDate || '-'}</div>
+                                <div class="col-span-1 text-sm text-center">${overdueDisplay}</div>
+                                <div class="col-span-1 text-sm">
+                                    <span class="badge bg-${ anyOverdue ? 'red' : 'green' }-100 text-${ anyOverdue ? 'red' : 'green' }-700 px-2 py-1 rounded text-xs">${quality}</span>
+                                </div>
+                                <div class="col-span-3 flex items-center justify-end gap-2">
+                                    <button class="btn-secondary px-3 py-1 text-xs" onclick="app.openCustomer('${encodeURIComponent(entry.name)}','${encodeURIComponent(entry.phone||'')}')">
+                                        <i class="fas fa-file-contract mr-1"></i>ดูสัญญา
+                                    </button>
+                                    <button class="btn-apple px-3 py-1 text-xs btn-primary" onclick="app.recordCall('${entry.phone||''}','${encodeURIComponent(entry.name)}','${repCon}')">
+                                        <i class="fas fa-phone mr-1"></i>โทรทันที
+                                    </button>
+                                </div>
                             </div>
                         </div>`
                     );
-
-                    // payment quality quick toggle (manual override)
-                    const qualityBtn = $(`<button class="ml-3 text-xs btn-secondary px-2 py-1">แก้ไขสถานะชำระ</button>`);
-                    qualityBtn.on('click', ()=>{
-                        const choice = prompt('ตั้งค่า ประวัติชำระ (ดี / ไม่ดี) หรือเว้นว่างเพื่อรีเซ็ต', overrides[key] || quality);
-                        if(choice === null) return;
-                        const v = (choice||'').trim();
-                        if(!v){ delete overrides[key]; }
-                        else overrides[key] = v;
-                        localStorage.setItem('payment_quality_overrides', JSON.stringify(overrides));
-                        this.renderCustomers(query);
-                    });
-                    row.find('.flex.items-center.gap-2').first().prepend(qualityBtn);
 
                     wrap.append(row);
                 });
@@ -2289,117 +2359,131 @@
             // Financial Reports Functions
             renderReports: function() {
                 const contracts = this.data.contracts || [];
+                const filterStatus = $('#report-filter-status').val();
+                
+                // Filter contracts
+                const filtered = filterStatus ? contracts.filter(c => c.status === filterStatus) : contracts;
                 
                 // Calculate totals
-                const totalIncome = contracts.reduce((sum, c) => sum + (c.paid || 0), 0);
-                const totalPending = contracts.reduce((sum, c) => sum + ((c.total || 0) - (c.paid || 0)), 0);
-                const totalContracts = contracts.length;
+                const totalIncome = filtered.reduce((sum, c) => sum + (c.paid || 0), 0);
+                const totalPending = filtered.reduce((sum, c) => sum + ((c.total || 0) - (c.paid || 0)), 0);
+                const totalContracts = filtered.length;
 
                 $('#report-total-income').text(totalIncome.toLocaleString() + ' ฿');
                 $('#report-pending').text(totalPending.toLocaleString() + ' ฿');
                 $('#report-total-contracts').text(totalContracts);
 
-                // Group by status
+                // Count by status
                 const byStatus = {};
-                contracts.forEach(c => {
+                filtered.forEach(c => {
                     const status = c.status || 'Unknown';
-                    if (!byStatus[status]) {
-                        byStatus[status] = { count: 0, total: 0, paid: 0, pending: 0 };
-                    }
-                    byStatus[status].count++;
-                    byStatus[status].total += (c.total || 0);
-                    byStatus[status].paid += (c.paid || 0);
-                    byStatus[status].pending += ((c.total || 0) - (c.paid || 0));
+                    byStatus[status] = (byStatus[status] || 0) + 1;
                 });
 
-                const statusContainer = $('#report-by-status');
-                statusContainer.empty();
-
-                const statusColors = {
-                    'Active': 'green',
-                    'Approved': 'blue',
-                    'Cancelled': 'red',
-                    'Closed': 'gray',
-                    'Asset Return': 'orange'
-                };
-
+                // Show status summary
+                const statusSummary = $('#report-status-summary');
+                statusSummary.empty();
                 Object.keys(byStatus).forEach(status => {
-                    const data = byStatus[status];
-                    const color = statusColors[status] || 'gray';
-                    
-                    statusContainer.append(`
-                        <div class="flex justify-between items-center p-4 border rounded-lg mb-2">
-                            <div class="flex items-center gap-3">
-                                <span class="badge bg-${color}-100 text-${color}-700">${status}</span>
-                                <span class="text-sm text-gray-600">${data.count} สัญญา</span>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-sm">
-                                    <span class="text-gray-500">เก็บได้:</span>
-                                    <span class="font-bold text-green-600">${data.paid.toLocaleString()} ฿</span>
-                                </div>
-                                <div class="text-sm">
-                                    <span class="text-gray-500">ค้างรับ:</span>
-                                    <span class="font-bold text-red-600">${data.pending.toLocaleString()} ฿</span>
-                                </div>
-                            </div>
-                        </div>
-                    `);
+                    statusSummary.append(`<div>${status}: <strong>${byStatus[status]}</strong></div>`);
                 });
 
-                // Payment history
-                const paymentHistory = $('#report-payment-history');
-                paymentHistory.empty();
+                // Build payment details table
+                const paymentTable = $('#report-payment-table');
+                paymentTable.empty();
 
-                const allPayments = [];
-                contracts.forEach(c => {
-                    if (c.payments && c.payments.length > 0) {
-                        c.payments.forEach(p => {
-                            allPayments.push({
-                                ...p,
-                                contractId: c.id,
-                                customerName: c.name
-                            });
-                        });
-                    }
-                });
-
-                if (allPayments.length === 0) {
-                    paymentHistory.html('<p class="text-gray-500 text-center py-4">ยังไม่มีประวัติการชำระเงิน</p>');
-                } else {
-                    const table = $('<table class="w-full text-sm"></table>');
-                    table.append(`
-                        <thead class="bg-gray-50 border-b">
-                            <tr>
-                                <th class="px-3 py-2 text-left text-xs font-bold">วันที่</th>
-                                <th class="px-3 py-2 text-left text-xs font-bold">สัญญา</th>
-                                <th class="px-3 py-2 text-left text-xs font-bold">ลูกค้า</th>
-                                <th class="px-3 py-2 text-right text-xs font-bold">จำนวนเงิน</th>
-                                <th class="px-3 py-2 text-left text-xs font-bold">ใบเสร็จ</th>
-                            </tr>
-                        </thead>
-                    `);
-
-                    const tbody = $('<tbody class="divide-y"></tbody>');
-                    allPayments.slice(0, 20).forEach(p => {
-                        tbody.append(`
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-3 py-2">${p.date || '-'}</td>
-                                <td class="px-3 py-2 font-mono">${p.contractId}</td>
-                                <td class="px-3 py-2">${p.customerName}</td>
-                                <td class="px-3 py-2 text-right font-bold">${(p.amount || 0).toLocaleString()} ฿</td>
-                                <td class="px-3 py-2 font-mono text-xs">${p.receipt || '-'}</td>
-                            </tr>
-                        `);
-                    });
-
-                    table.append(tbody);
-                    paymentHistory.append(table);
-                    
-                    if (allPayments.length > 20) {
-                        paymentHistory.append(`<p class="text-xs text-gray-500 text-center mt-2">แสดง 20 รายการล่าสุด (ทั้งหมด ${allPayments.length} รายการ)</p>`);
-                    }
+                if (filtered.length === 0) {
+                    paymentTable.html('<p class="text-gray-500 text-center py-4">ไม่มีข้อมูล</p>');
+                    return;
                 }
+
+                const table = $('<table class="w-full text-sm"></table>');
+                table.append(`
+                    <thead class="bg-gray-50 border-b">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-bold">สัญญา</th>
+                            <th class="px-3 py-2 text-left text-xs font-bold">ชื่อลูกค้า</th>
+                            <th class="px-3 py-2 text-right text-xs font-bold">ยอดชำระแล้ว</th>
+                            <th class="px-3 py-2 text-right text-xs font-bold">ยอดคงเหลือ</th>
+                            <th class="px-3 py-2 text-center text-xs font-bold">สถานะ</th>
+                            <th class="px-3 py-2 text-center text-xs font-bold">การดำเนินการ</th>
+                        </tr>
+                    </thead>
+                `);
+
+                const tbody = $('<tbody class="divide-y"></tbody>');
+                filtered.forEach(c => {
+                    const paid = c.paid || 0;
+                    const total = c.total || 0;
+                    const remaining = total - paid;
+                    
+                    // Determine payment status
+                    let paymentStatus = 'รออนุมัติ';
+                    let statusColor = 'orange';
+                    
+                    if (c.status === 'Closed') {
+                        paymentStatus = 'สำเร็จ';
+                        statusColor = 'green';
+                    } else if (c.status === 'Active') {
+                        paymentStatus = 'กำลังชำระ';
+                        statusColor = 'blue';
+                    } else if (c.status === 'Cancelled') {
+                        paymentStatus = 'ยกเลิก';
+                        statusColor = 'red';
+                    }
+
+                    tbody.append(`
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 py-2 font-mono">${c.id}</td>
+                            <td class="px-3 py-2">${c.name || '-'}</td>
+                            <td class="px-3 py-2 text-right font-bold text-green-600">${paid.toLocaleString()} ฿</td>
+                            <td class="px-3 py-2 text-right font-bold text-red-600">${remaining.toLocaleString()} ฿</td>
+                            <td class="px-3 py-2 text-center">
+                                <span class="badge bg-${statusColor}-100 text-${statusColor}-700 px-2 py-1 rounded text-xs">${paymentStatus}</span>
+                            </td>
+                            <td class="px-3 py-2 text-center">
+                                <button onclick="app.openDetail('${c.id}')" class="btn-secondary px-2 py-1 text-xs" title="ดูรายละเอียดสัญญา">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `);
+                });
+
+                table.append(tbody);
+                paymentTable.append(table);
+            },
+
+            exportReports: function() {
+                const contracts = this.data.contracts || [];
+                const filterStatus = $('#report-filter-status').val();
+                const filtered = filterStatus ? contracts.filter(c => c.status === filterStatus) : contracts;
+
+                if (filtered.length === 0) {
+                    Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูลสำหรับส่งออก' });
+                    return;
+                }
+
+                const headers = ['id', 'name', 'phone', 'status', 'total', 'paid', 'remaining', 'date'];
+                const rows = [headers.join(',')];
+                
+                filtered.forEach(c => {
+                    const remaining = (c.total || 0) - (c.paid || 0);
+                    const vals = [
+                        `"${c.id || ''}"`,
+                        `"${(c.name || '').replace(/"/g, '""')}"`,
+                        `"${c.phone || ''}"`,
+                        `"${c.status || ''}"`,
+                        c.total || 0,
+                        c.paid || 0,
+                        remaining,
+                        `"${c.date || ''}"`
+                    ];
+                    rows.push(vals.join(','));
+                });
+
+                const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                const timestamp = new Date().toISOString().slice(0, 10);
+                this._downloadBlob(`financial_report_${timestamp}.csv`, blob);
             }
         };
 
