@@ -483,20 +483,34 @@
                 </div>
 
                 <div class="glass-panel overflow-hidden">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold border-b border-gray-200">
-                            <tr>
-                                <th class="px-6 py-4">สถานะ</th>
-                                <th class="px-6 py-4">เลขที่สัญญา</th>
-                                <th class="px-6 py-4">ลูกค้า</th>
-                                <th class="px-6 py-4">ประเภท</th>
-                                <th class="px-6 py-4">วันที่เริ่ม</th>
-                                <th class="px-6 py-4">ค้างชำระ</th>
-                                <th class="px-6 py-4 text-right">ยอดคงเหลือ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body" class="divide-y divide-gray-100 bg-white/50"></tbody>
-                    </table>
+                    <!-- Mantine-style DataTable with scrollable container -->
+                    <div class="datatables pagination-padding">
+                        <div class="whitespace-nowrap table-hover invoice-table">
+                            <div class="scroll-area-root" style="position: relative;">
+                                <div class="scroll-area-viewport" style="overflow: scroll;">
+                                    <div style="min-width: 100%; display: table;">
+                                        <table class="w-full text-left text-sm table-hover">
+                                            <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold border-b border-gray-200 sticky top-0">
+                                                <tr>
+                                                    <th class="px-6 py-4">สถานะ</th>
+                                                    <th class="px-6 py-4">เลขที่สัญญา</th>
+                                                    <th class="px-6 py-4">ลูกค้า</th>
+                                                    <th class="px-6 py-4">เบอร์โทร</th>
+                                                    <th class="px-6 py-4">วันที่เริ่ม</th>
+                                                    <th class="px-6 py-4">ยอดรวม</th>
+                                                    <th class="px-6 py-4">ชำระแล้ว</th>
+                                                    <th class="px-6 py-4">ค้างชำระ</th>
+                                                    <th class="px-6 py-4 text-right">ยอดคงเหลือ</th>
+                                                    <th class="px-6 py-4 text-center">การดำเนินการ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="table-body" class="divide-y divide-gray-100 bg-white/50"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1349,6 +1363,39 @@
                 }
             },
 
+            loadMockData: function() {
+                Swal.fire({
+                    title: 'Load Mock Data?',
+                    text: 'This will add sample contracts for testing. Current data will be kept.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, load it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const mockContracts = [
+                            { id: 'C-2001', name: 'ทดสอบ ระบบ', phone: '081-111-1111', date: '2024-03-01', status: 'Active', total: 45000, paid: 25000, before: 5000, installments: 12, payments: [], fee_paid: true, cost: 25000, resale: 0, nationalId: '1234567890123', address: '123 ถนนทดสอบ' },
+                            { id: 'C-2002', name: 'ตัวอย่าง ข้อมูล', phone: '082-222-2222', date: '2024-04-15', status: 'Approved', total: 60000, paid: 0, before: 10000, installments: 18, payments: [], fee_paid: false, cost: 35000, resale: 0, nationalId: '9876543210987', address: '456 ถนนสมมติ' },
+                            { id: 'C-2003', name: 'ตัวอย่าง สอง', phone: '083-333-3333', date: '2023-12-01', status: 'Closed', total: 30000, paid: 30000, before: 3000, installments: 10, payments: [], fee_paid: true, cost: 18000, resale: 0, nationalId: '1111222233334', address: '789 ถนนจำลอง' },
+                            { id: 'C-2004', name: 'ทดสอบ ค้างชำระ', phone: '084-444-4444', date: '2023-06-01', status: 'Active', total: 50000, paid: 10000, before: 5000, installments: 15, payments: [], fee_paid: false, cost: 28000, resale: 0, nationalId: '5555666677778', address: '321 ถนนตัวอย่าง' },
+                            { id: 'C-2005', name: 'ลูกค้า ยกเลิก', phone: '085-555-5555', date: '2024-02-01', status: 'Cancelled', total: 40000, paid: 5000, before: 0, installments: 12, payments: [], fee_paid: false, cost: 22000, resale: 18000, nationalId: '9999888877776', address: '654 ถนนจำลอง' }
+                        ];
+                        
+                        this.data.contracts.push(...mockContracts);
+                        this.saveData();
+                        this.renderTable();
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Mock Data Loaded!',
+                            text: `Added ${mockContracts.length} sample contracts`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    }
+                });
+            },
+
             renderTable: function() {
                 const tbody = $('#table-body');
                 const fStat = $('#filter-status').val();
@@ -1406,23 +1453,40 @@
 
                     filtered.push(c);
 
-                    let badge = `<span class="badge bg-gray-100 text-gray-500">${c.status}</span>`;
-                    if(c.status === 'Active') badge = `<span class="badge bg-green-100 text-green-700">Active</span>`;
-                    if(c.status === 'Approved') badge = `<span class="badge bg-blue-100 text-blue-700">Approved</span>`;
-                    if(c.status === 'Asset Return') badge = `<span class="badge bg-orange-100 text-orange-700">Return</span>`;
+                    let badge = `<span class="badge bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs font-bold">${c.status}</span>`;
+                    if(c.status === 'Active') badge = `<span class="badge bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Active</span>`;
+                    if(c.status === 'Approved') badge = `<span class="badge bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">Approved</span>`;
+                    if(c.status === 'Asset Return') badge = `<span class="badge bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold">Return</span>`;
+                    if(c.status === 'Closed') badge = `<span class="badge bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold">Closed</span>`;
+                    if(c.status === 'Cancelled') badge = `<span class="badge bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">Cancelled</span>`;
 
                     let finText = `<span class="text-green-600 font-bold text-xs">ปกติ</span>`;
-                    if(ov.isOverdue) finText = `<span class="text-red-500 font-bold text-xs"><i class="fas fa-clock"></i> ค้าง ${ov.text}</span>`;
+                    if(ov.isOverdue) finText = `<span class="text-red-500 font-bold text-xs"><i class="fas fa-clock mr-1"></i>ค้าง ${ov.text}</span>`;
+
+                    const total = c.total || 0;
+                    const paid = c.paid || 0;
+                    const remaining = total - paid;
 
                     tbody.append(`
-                        <tr class="hover:list-highlight transition border-b border-gray-100">
+                        <tr class="hover:bg-blue-50/50 transition cursor-pointer" onclick="app.openDetail('${c.id}')">
                             <td class="px-6 py-4">${badge}</td>
-                            <td class="px-6 py-4 font-mono"><a href="#" onclick="app.openDetail('${c.id}');return false" class="text-blue-600 font-bold hover:underline">${c.id}</a></td>
+                            <td class="px-6 py-4 font-mono">
+                                <a href="#" onclick="event.stopPropagation(); app.openDetail('${c.id}'); return false;" class="text-blue-600 font-bold hover:underline">
+                                    ${c.id}
+                                </a>
+                            </td>
                             <td class="px-6 py-4 font-medium text-gray-900">${c.name}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">${ptype}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600 font-mono">${c.phone || '-'}</td>
                             <td class="px-6 py-4 text-gray-500 text-xs font-mono">${c.date}</td>
+                            <td class="px-6 py-4 text-right font-mono text-gray-700">${total.toLocaleString()} ฿</td>
+                            <td class="px-6 py-4 text-right font-mono text-green-600 font-bold">${paid.toLocaleString()} ฿</td>
                             <td class="px-6 py-4">${finText}</td>
-                            <td class="px-6 py-4 text-right font-mono font-bold text-gray-800">${((c.total||0)-(c.paid||0)).toLocaleString()}</td>
+                            <td class="px-6 py-4 text-right font-mono font-bold ${remaining > 0 ? 'text-red-600' : 'text-green-600'}">${remaining.toLocaleString()} ฿</td>
+                            <td class="px-6 py-4 text-center">
+                                <button onclick="event.stopPropagation(); app.openDetail('${c.id}')" class="btn-secondary px-3 py-1 text-xs" title="ดูรายละเอียด">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
                         </tr>
                     `);
                 });
@@ -1430,7 +1494,9 @@
                 this._lastFilteredList = filtered;
 
                 if(this.data.contracts.length === 0){
-                    tbody.html('<tr><td colspan="7" class="text-center py-6 text-xs text-gray-400">ไม่มีสัญญา — กรุณา Import CSV หรือตั้งค่าข้อมูลตัวอย่าง</td></tr>');
+                    tbody.html('<tr><td colspan="10" class="text-center py-8 text-sm text-gray-400"><i class="fas fa-inbox text-3xl mb-2 block"></i>ไม่มีสัญญา — กรุณา Import CSV หรือคลิก "Load Mock Data" เพื่อโหลดข้อมูลตัวอย่าง</td></tr>');
+                } else if(filtered.length === 0){
+                    tbody.html('<tr><td colspan="10" class="text-center py-8 text-sm text-gray-400"><i class="fas fa-search text-3xl mb-2 block"></i>ไม่พบสัญญาที่ตรงกับเงื่อนไขการค้นหา</td></tr>');
                 }
             },
 
