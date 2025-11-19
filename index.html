@@ -181,11 +181,15 @@
             </div>
 
             <div class="pt-6 pb-2 px-3 text-[10px] font-bold text-gray-400 uppercase">System</div>
-            <div onclick="app.openAdminUsers()" class="menu-item p-3 flex items-center gap-3">
-                <i class="fas fa-user-shield w-5 text-center"></i> User Management
+            <div onclick="app.toggleSub('sub-settings')" class="menu-item p-3 flex items-center justify-between group">
+                <div class="flex items-center gap-3"><i class="fas fa-cog w-5 text-center"></i> Settings</div>
+                <i class="fas fa-chevron-down text-xs opacity-50"></i>
             </div>
-            <div onclick="app.navTo('receipts', this)" class="menu-item p-3 flex items-center gap-3">
-                <i class="fas fa-receipt w-5 text-center"></i> ตั้งค่าใบเสร็จ
+            <div id="sub-settings" class="hidden pl-4 space-y-1">
+                <div onclick="app.navTo('receipts', this)" class="menu-item p-2 text-xs pl-9">ตั้งค่าใบเสร็จ</div>
+                <div onclick="app.showStatusLogs()" class="menu-item p-2 text-xs pl-9">ดูประวัติการเปลี่ยนสถานะ</div>
+                <div onclick="app.showCallLogs()" class="menu-item p-2 text-xs pl-9">ดูประวัติการติดต่อลูกค้า</div>
+                <div onclick="app.openUploadSettings()" class="menu-item p-2 text-xs pl-9">ตั้งค่า Upload Token</div>
             </div>
         </nav>
 
@@ -683,7 +687,7 @@
             </div>
             <div class="space-y-3">
                 <label class="text-xs font-bold text-gray-500">Upload Token (optional)</label>
-                <input id="setting-upload-token" type="text" class="apple-input w-full text-sm" placeholder="Paste upload token to enable protected uploads" />
+                <input id="upload-token" type="text" class="apple-input w-full text-sm" placeholder="Paste upload token to enable protected uploads" />
                 <div class="text-xs text-gray-400">If a token is set here, the client will send it as header <code>x-upload-token</code> on uploads.</div>
                 <div>
                     <label class="text-xs font-bold text-gray-500">Yalecom call template (optional)</label>
@@ -691,26 +695,27 @@
                     <div class="text-xs text-gray-400">Use <code>%s</code> to inject phone number. If empty, the app will use <code>tel:</code>.</div>
                 </div>
                 <div class="mt-4 text-right">
-                        <button onclick="app.saveSettings()" class="btn-apple btn-primary px-4 py-2">Save</button>
-                        <button onclick="app.showCallLogs()" class="btn-secondary px-4 py-2 ml-2">View Call Logs</button>
-                        <button onclick="app.showStatusLogs()" class="btn-secondary px-4 py-2 ml-2">View Status Logs</button>
-                    <!-- Status Change Logs modal -->
-                    <div id="modal-status-logs" class="fixed inset-0 z-60 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
-                        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <h4 class="font-bold">Status Change Logs</h4>
-                                <button onclick="app.closeModal('modal-status-logs')" class="text-gray-500"><i class="fas fa-times"></i></button>
-                            </div>
-                            <div class="mb-3 text-xs text-gray-500">บันทึกการเปลี่ยนสถานะสัญญา (localStorage)</div>
-                            <div id="status-logs-list" class="max-h-64 overflow-auto text-sm border rounded p-2 bg-gray-50"></div>
-                            <div class="mt-4 text-right">
-                                <button onclick="app.clearStatusLogs()" class="btn-secondary px-4 py-2 mr-2">Clear Logs</button>
-                                <button onclick="app.closeModal('modal-status-logs')" class="btn-apple btn-primary px-4 py-2">Close</button>
-                            </div>
-                        </div>
-                    </div>
+                    <button onclick="app.saveSettings()" class="btn-apple btn-primary px-4 py-2">Save</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Status Change Logs modal -->
+    <div id="modal-status-logs" class="fixed inset-0 z-60 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="font-bold">Status Change Logs</h4>
+                <button onclick="app.closeModal('modal-status-logs')" class="text-gray-500"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="mb-3 text-xs text-gray-500">บันทึกการเปลี่ยนสถานะสัญญา (localStorage)</div>
+            <div id="status-logs-list" class="max-h-64 overflow-auto text-sm border rounded p-2 bg-gray-50"></div>
+            <div class="mt-4 text-right">
+                <button onclick="app.clearStatusLogs()" class="btn-secondary px-4 py-2 mr-2">Clear Logs</button>
+                <button onclick="app.closeModal('modal-status-logs')" class="btn-apple btn-primary px-4 py-2">Close</button>
+            </div>
+        </div>
+    </div>
         </div>
     </div>
 
@@ -1610,30 +1615,6 @@
                 $('#modal-customer').removeClass('hidden').addClass('flex');
             },
 
-            // Show call logs modal and render logs
-            showCallLogs: function(){
-                const wrap = $('#call-logs-list'); wrap.empty();
-                let logs = [];
-                try{ logs = JSON.parse(localStorage.getItem('call_log_v1') || '[]'); }catch(e){ logs = []; }
-                if(!logs || logs.length === 0){ wrap.html('<div class="text-xs text-gray-500 p-3">ไม่มีบันทึกการโทร</div>'); }
-                else {
-                    logs.forEach(l => {
-                        const t = $('<div class="p-2 border-b last:border-b-0"></div>');
-                        t.append(`<div class="text-xs text-gray-400">${new Date(l.time).toLocaleString()}</div>`);
-                        t.append(`<div class="text-sm font-bold">${l.customer || '-'} • ${l.phone}</div>`);
-                        t.append(`<div class="text-xs text-gray-500">method: ${l.method || '-'} ${l.contractId? '• '+l.contractId : ''}</div>`);
-                        wrap.append(t);
-                    });
-                }
-                $('#modal-call-logs').removeClass('hidden').addClass('flex');
-            },
-
-            clearCallLogs: function(){
-                if(!confirm('ลบประวัติการโทรทั้งหมด?')) return;
-                try{ localStorage.removeItem('call_log_v1'); }catch(e){}
-                this.showCallLogs();
-            },
-
             // Show status change logs modal
             showStatusLogs: function(){
                 const wrap = $('#status-logs-list'); wrap.empty();
@@ -1768,6 +1749,63 @@
                 Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', text: rcpNo ? `ใบเสร็จ: ${rcpNo}` : '' });
                 this.openDetail(this.data.currentId);
                 this.renderDashboard();
+            },
+
+            showCallLogs: function(){
+                const logs = JSON.parse(localStorage.getItem('call_log_v1') || '[]');
+                let html = '<div class="space-y-2">';
+                if(logs.length === 0) {
+                    html += '<p class="text-gray-400 text-sm">ไม่มีประวัติการติดต่อ</p>';
+                } else {
+                    logs.forEach(log => {
+                        const badge = log.result === 'รับสาย' ? 'bg-green-100 text-green-700' : log.result === 'ไม่รับสาย' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700';
+                        html += `
+                            <div class="p-3 bg-gray-50 rounded border">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-bold">${log.customerName || 'ไม่ระบุ'}</span>
+                                        <span class="badge ${badge} ml-2">${log.result}</span>
+                                    </div>
+                                    <span class="text-xs text-gray-400">${new Date(log.time).toLocaleString('th-TH')}</span>
+                                </div>
+                                ${log.note ? `<p class="text-sm text-gray-600 mt-2">${log.note}</p>` : ''}
+                            </div>
+                        `;
+                    });
+                }
+                html += '</div>';
+                html += '<div class="mt-4 flex gap-2"><button onclick="app.clearCallLogs()" class="btn-secondary px-4 py-2">ล้างประวัติ</button></div>';
+                Swal.fire({ title: 'ประวัติการติดต่อลูกค้า', html: html, width: '600px', showConfirmButton: false, showCloseButton: true });
+            },
+
+            clearCallLogs: function(){
+                Swal.fire({
+                    title: 'ยืนยันการล้างประวัติ?',
+                    text: 'การกระทำนี้ไม่สามารถย้อนกลับได้',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'ยืนยัน',
+                    cancelButtonText: 'ยกเลิก'
+                }).then(result => {
+                    if(result.isConfirmed) {
+                        localStorage.removeItem('call_log_v1');
+                        Swal.fire({ icon: 'success', title: 'ล้างประวัติสำเร็จ' });
+                        this.showCallLogs();
+                    }
+                });
+            },
+
+            openUploadSettings: function(){
+                const token = localStorage.getItem('upload_token') || '';
+                $('#upload-token').val(token);
+                this.openModal('modal-settings');
+            },
+
+            saveSettings: function(){
+                const token = $('#upload-token').val();
+                localStorage.setItem('upload_token', token);
+                this.closeModal('modal-settings');
+                Swal.fire({ icon: 'success', title: 'บันทึกการตั้งค่าแล้ว' });
             }
         };
 
