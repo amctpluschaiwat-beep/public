@@ -249,15 +249,13 @@
             </div>
             <div id="sub-con" class="hidden pl-4 space-y-1">
                 <div onclick="app.navTo('list', this, '')" class="menu-item p-2 text-xs pl-9">รายการทั้งหมด</div>
-                <div onclick="app.navTo('list', this, 'Approved')" class="menu-item p-2 text-xs pl-9">รออนุมัติ</div>
-                <div onclick="app.navTo('list', this, 'Active')" class="menu-item p-2 text-xs pl-9">ในระบบ</div>
-                <div onclick="app.navTo('list', this, 'Cancelled')" class="menu-item p-2 text-xs pl-9">ยกเลิก</div>
-                <div onclick="app.navTo('list', this, 'Closed')" class="menu-item p-2 text-xs pl-9">สิ้นสุด / ปิดบัญชี</div>
-                <div onclick="app.navTo('list', this, 'Asset Return')" class="menu-item p-2 text-xs pl-9">คืนสินทรัพย์ (ส่งไปสินทรัพย์)</div>
+                <div onclick="app.navTo('list', this, 'Approved')" class="menu-item p-2 text-xs pl-9">สัญญาอนุมัติ</div>
+                <div onclick="app.navTo('list', this, 'Closed')" class="menu-item p-2 text-xs pl-9">สัญญาสิ้นสุด</div>
+                <div onclick="app.navTo('list', this, 'Active')" class="menu-item p-2 text-xs pl-9">สัญญาอยู่ในระบบ</div>
             </div>
 
             <div onclick="app.navTo('customers', this)" class="menu-item p-3 flex items-center gap-3">
-                <i class="fas fa-users w-5 text-center"></i> ลูกค้า (CRM)
+                <i class="fas fa-users w-5 text-center"></i> ลูกค้า & Call Logs
             </div>
             
             <div onclick="app.toggleSub('sub-ass')" class="menu-item p-3 flex items-center justify-between group">
@@ -270,17 +268,21 @@
             </div>
 
             <div class="pt-6 pb-2 px-3 text-[10px] font-bold text-gray-400 uppercase">System</div>
+            
+            <div onclick="app.navTo('reports', this)" class="menu-item p-3 flex items-center gap-3">
+                <i class="fas fa-chart-line w-5 text-center"></i> รายงานการเงิน
+            </div>
+            
             <div onclick="app.toggleSub('sub-settings')" class="menu-item p-3 flex items-center justify-between group">
-                <div class="flex items-center gap-3"><i class="fas fa-cog w-5 text-center"></i> Settings</div>
+                <div class="flex items-center gap-3"><i class="fas fa-cog w-5 text-center"></i> ตั้งค่า</div>
                 <i class="fas fa-chevron-down text-xs opacity-50"></i>
             </div>
             <div id="sub-settings" class="hidden pl-4 space-y-1">
+                <div onclick="app.navTo('users', this)" class="menu-item p-2 text-xs pl-9">จัดการผู้ใช้งาน</div>
                 <div onclick="app.navTo('receipts', this)" class="menu-item p-2 text-xs pl-9">ตั้งค่าใบเสร็จ</div>
-                <div onclick="app.navTo('users', this)" class="menu-item p-2 text-xs pl-9">จัดการผู้ใช้</div>
-                <div onclick="app.navTo('reports', this)" class="menu-item p-2 text-xs pl-9">รายงานการเงิน</div>
+                <div onclick="app.showCallLogs()" class="menu-item p-2 text-xs pl-9">จัดการการโทร</div>
                 <div onclick="app.showStatusLogs()" class="menu-item p-2 text-xs pl-9">ดูประวัติการเปลี่ยนสถานะ</div>
-                <div onclick="app.showCallLogs()" class="menu-item p-2 text-xs pl-9">ดูประวัติการติดต่อลูกค้า</div>
-                <div onclick="app.openUploadSettings()" class="menu-item p-2 text-xs pl-9">ตั้งค่า Upload Token</div>
+                <div onclick="app.openUploadSettings()" class="menu-item p-2 text-xs pl-9">ตั้งค่า API/Application</div>
             </div>
         </nav>
 
@@ -621,8 +623,9 @@
                 <div class="glass-panel p-6 text-gray-700">
                     <div class="flex items-center justify-between mb-4">
                         <div>
-                            <h3 class="text-lg font-bold mb-1">ลูกค้า (CRM)</h3>
-                            <p class="text-sm text-gray-500">จัดการรายชื่อลูกค้า และเปิดดูสัญญาที่เกี่ยวข้อง</p>
+                            <h3 class="text-lg font-bold mb-1">ลูกค้า</h3>
+                            <p class="text-sm text-gray-500">รายชื่อลูกค้าที่มีสัญญา (จัดกลุ่มตามชื่อและเบอร์โทร) • Call Logging & ประวัติการติดต่อ</p>
+                            <p class="text-xs text-orange-600 mt-1"><i class="fas fa-info-circle"></i> ข้อมูลนี้สร้างจากสัญญาในระบบ ไม่ใช่ฐาน CRM แยกต่างหาก</p>
                         </div>
                         <div class="flex items-center gap-2">
                             <input id="cust-search" oninput="app.renderCustomers(this.value)" type="text" placeholder="ค้นหาชื่อลูกค้า หรือ เบอร์โทร" class="apple-input text-sm" />
