@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMS Pro - Apple Workstation</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <style>
+        /* --- APPLE DESIGN SYSTEM --- */
+        :root {
+            --sidebar-bg: #0b5ed7; /* Blue for sidebar */
+            --glass-bg: rgba(255, 255, 255, 0.96); /* whiter glass surface */
+            --glass-border: 1px solid rgba(0, 0, 0, 0.04);
+            --glass-shadow: 0 6px 18px rgba(16,24,40,0.04);
+            --accent: #0ea5e9; /* Lighter blue accent */
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #F5F5F7;
+            background-image: 
+                radial-gradient(at 40% 20%, hsla(228,100%,74%,0.1) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(189,100%,56%,0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, hsla(340,100%,76%,0.1) 0px, transparent 50%);
+            height: 100vh;
+            overflow: hidden;
+            color: #1d1d1f;
+        }
+
+        /* Glass Components */
+        .glass-panel {
+            background: var(--glass-bg); /* translucent glass surface */
+            -webkit-backdrop-filter: blur(10px) saturate(120%);
+            backdrop-filter: blur(10px) saturate(120%);
+            border: 1px solid rgba(255,255,255,0.14);
+            box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+            border-radius: 16px;
+            color: #111827;
+        }
+
+        .glass-sidebar {
+            background: linear-gradient(180deg, #0b5ed7 0%, #0b66ff 100%);
+            -webkit-backdrop-filter: blur(40px);
+            backdrop-filter: blur(40px);
+            color: white;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* list item highlight for selected / focused rows */
+        .list-highlight { background: #E6F6FF; }
+
+        /* Interactive Elements */
+        .menu-item {
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); opacity: 1; }
+        .menu-item.active {
+            background: rgba(0, 122, 255, 0.2);
+            color: #60a5fa;
+            border-left: 3px solid #60a5fa;
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        .btn-apple {
+            border-radius: 99px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(0, 122, 255, 0.4); }
+
+        /* Inputs */
+        .apple-input {
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 12px;
+            padding: 10px 16px;
+            transition: 0.2s;
+            outline: none;
+        }
+        .apple-input:focus { background: white; box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2); }
+
+        /* Utility */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+
+        /* Progress Bar Widths */
+        .w-0 { width: 0%; }
+        .w-10 { width: 10%; }
+        .w-20 { width: 20%; }
+        .w-30 { width: 30%; }
+        .w-40 { width: 40%; }
+        .w-50 { width: 50%; }
+        .w-60 { width: 60%; }
+        .w-70 { width: 70%; }
+        .w-80 { width: 80%; }
+        .w-90 { width: 90%; }
+        .w-100 { width: 100%; }
+        
+        /* Payment Option */
+        .pay-option { cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+        .pay-option.selected { background: #eff6ff; border-color: var(--accent); color: var(--accent); }
+
+        /* Utilities & components */
+        .btn-secondary { background: transparent; border: 1px solid rgba(0,0,0,0.06); color: #374151; border-radius: 12px; padding: 0.5rem 1rem; }
+        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.65rem; }
+
+        /* Customer card improvements to avoid overlap */
+        .customer-card { background: rgba(255,255,255,0.6); border-radius: 12px; padding: 1rem; box-shadow: 0 6px 16px rgba(2,6,23,0.04); }
+        .customer-card .meta { font-size: 0.78rem; color: #6b7280; }
+
+        /* Timeline */
+        .timeline-line { position: relative; padding-left: 1.25rem; }
+        .timeline-dot { width: 10px; height: 10px; border-radius: 50%; background: #e5e7eb; position: absolute; left: 0; top: 6px; border: 2px solid white; }
+
+        /* Small responsive fixes */
+        @media (max-width: 768px) {
+            aside.w-72 { width: 56px; }
+            .menu-item span { display: none; }
+        }
+    </style>
+</head>
+<body class="flex text-sm">
+
+    <aside class="w-72 glass-sidebar h-full flex flex-col z-50 shadow-2xl">
+        <div class="p-8 text-center border-b border-white/10">
+            <h1 class="text-3xl font-bold tracking-tight text-white">TMS <span class="font-light">Pro</span></h1>
+            <p class="text-[10px] text-blue-200 uppercase tracking-widest mt-1">Asset Management</p>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+            <div onclick="app.navTo('dashboard', this)" class="menu-item active p-3 flex items-center gap-3">
+                <i class="fas fa-chart-pie w-5 text-center"></i> Dashboard
+            </div>
+
+            <div class="pt-6 pb-2 px-3 text-[10px] font-bold text-gray-400 uppercase">Workstation</div>
+
+            <div onclick="app.toggleSub('sub-con')" class="menu-item p-3 flex items-center justify-between group">
+                <div class="flex items-center gap-3"><i class="fas fa-file-contract w-5 text-center"></i> สัญญา</div>
+                <i class="fas fa-chevron-down text-xs opacity-50"></i>
+            </div>
+            <div id="sub-con" class="hidden pl-4 space-y-1">
+                <div onclick="app.navTo('list', this)" class="menu-item p-2 text-xs pl-9">รายการทั้งหมด</div>
+                <div onclick="app.navTo('list', this, 'Approved')" class="menu-item p-2 text-xs pl-9">รออนุมัติ</div>
+                <div onclick="app.navTo('list', this, 'Active')" class="menu-item p-2 text-xs pl-9">ในระบบ</div>
+                <div onclick="app.navTo('list', this, 'Cancelled')" class="menu-item p-2 text-xs pl-9">ยกเลิก</div>
+                <div onclick="app.navTo('list', this, 'Closed')" class="menu-item p-2 text-xs pl-9">สิ้นสุด / ปิดบัญชี</div>
+                <div onclick="app.navTo('list', this, 'Asset Return')" class="menu-item p-2 text-xs pl-9">คืนสินทรัพย์ (ส่งไปสินทรัพย์)</div>
+            </div>
+
+            <div onclick="app.navTo('customers', this)" class="menu-item p-3 flex items-center gap-3">
+                <i class="fas fa-users w-5 text-center"></i> ลูกค้า (CRM)
+            </div>
+            
+            <div onclick="app.toggleSub('sub-ass')" class="menu-item p-3 flex items-center justify-between group">
+                <div class="flex items-center gap-3"><i class="fas fa-box w-5 text-center"></i> สินทรัพย์</div>
+                <i class="fas fa-chevron-down text-xs opacity-50"></i>
+            </div>
+            <div id="sub-ass" class="hidden pl-4 space-y-1">
+                <div onclick="app.navTo('assets-leased', this)" class="menu-item p-2 text-xs pl-9">ในระบบผ่อน</div>
+                <div onclick="app.navTo('assets-stock', this)" class="menu-item p-2 text-xs pl-9">สต็อกสินค้า (QC)</div>
+            </div>
+
+            <div class="pt-6 pb-2 px-3 text-[10px] font-bold text-gray-400 uppercase">System</div>
+            <div onclick="app.openAdminUsers()" class="menu-item p-3 flex items-center gap-3">
+                <i class="fas fa-user-shield w-5 text-center"></i> User Management
+            </div>
+            <div onclick="app.navTo('receipts', this)" class="menu-item p-3 flex items-center gap-3">
+                <i class="fas fa-receipt w-5 text-center"></i> ตั้งค่าใบเสร็จ
+            </div>
+        </nav>
+
+        <div class="p-4 bg-black/20 backdrop-blur-md">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">A</div>
+                <div>
+                    <p class="text-xs font-bold text-white">Admin User</p>
+                    <p class="text-[10px] text-green-400">Online</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full relative z-10">
+        <header class="h-20 px-8 flex items-center justify-between z-40 glass-header sticky top-0 bg-white/50 backdrop-blur-md">
+            <h2 class="text-2xl font-bold text-gray-800" id="page-title">Overview</h2>
+            <div class="flex items-center gap-3" id="header-user-area">
+                <div id="user-badge" class="flex items-center gap-3">
+                    <div id="user-avatar" class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">A</div>
+                    <div class="text-right leading-none">
+                        <div id="user-name" class="text-xs font-bold text-gray-800">Guest</div>
+                        <div id="user-role" class="text-[10px] text-gray-500">Not signed in</div>
+                    </div>
+                </div>
+                <button title="Settings" onclick="app.openSettings()" class="text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-full text-xs font-medium transition"><i class="fas fa-cog"></i></button>
+                <button id="btn-login" onclick="app.showLogin()" class="text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-full text-xs font-bold transition"><i class="fas fa-right-to-bracket mr-2"></i> Login</button>
+                <button id="btn-logout" onclick="app.logout()" class="text-red-500 hover:bg-red-50 px-4 py-2 rounded-full text-xs font-bold transition hidden"><i class="fas fa-power-off mr-2"></i> Logout</button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8 pb-20" id="main-scroll">
+            
+            <div id="view-dashboard" class="page-view fade-in max-w-7xl mx-auto">
+                <div class="mb-6 flex gap-4 items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <label class="text-xs text-gray-500">จาก</label>
+                        <input type="date" id="dash-start" class="apple-input text-xs" placeholder="เลือกวันที่เริ่มต้น" title="เลือกวันที่เริ่มต้น">
+                        <label class="text-xs text-gray-500">ถึง</label>
+                        <input type="date" id="dash-end" class="apple-input text-xs" title="เลือกวันที่สิ้นสุด" placeholder="เลือกวันที่สิ้นสุด">
+                        <button onclick="app.renderDashboard()" class="btn-secondary ml-2">แสดง</button>
+                    </div>
+                    <div class="text-xs text-gray-500">ช่วงเวลาสำหรับ Dashboard</div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="glass-panel p-6">
+                        <p class="text-xs text-gray-500 uppercase font-bold">ยอดเก็บได้จริง</p>
+                        <h3 class="text-3xl font-bold text-gray-900 mt-2" id="d-collected">0 ฿</h3>
+                    </div>
+                    <div class="glass-panel p-6">
+                        <p class="text-xs text-gray-500 uppercase font-bold">สัญญาในระบบ</p>
+                        <h3 class="text-3xl font-bold text-green-600 mt-2" id="d-active">0</h3>
+                    </div>
+                    <div class="glass-panel p-6">
+                        <p class="text-xs text-gray-500 uppercase font-bold">รออนุมัติ</p>
+                        <h3 class="text-3xl font-bold text-orange-500 mt-2" id="d-pending">0</h3>
+                    </div>
+                    <div class="glass-panel p-6">
+                        <p class="text-xs text-gray-500 uppercase font-bold">ค้างชำระ</p>
+                        <h3 class="text-3xl font-bold text-red-500 mt-2" id="d-overdue">0</h3>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="glass-panel p-6 md:col-span-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold">Analytics</h4>
+                            <div class="text-xs text-gray-500">อัปเดตตามช่วงวันที่</div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-white/50 rounded-xl">
+                                <canvas id="chart-status" height="180"></canvas>
+                            </div>
+                            <div class="p-4 bg-white/50 rounded-xl">
+                                <canvas id="chart-revenue" height="180"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                        <!-- Authentication Modals -->
+                        <div id="modal-login" class="fixed inset-0 z-70 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+                            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="font-bold">Sign In</h4>
+                                    <button onclick="app.closeModal('modal-login')" class="text-gray-500"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div class="space-y-3">
+                                    <input id="login-username" class="apple-input w-full" placeholder="Username or email">
+                                    <input id="login-password" type="password" class="apple-input w-full" placeholder="Password">
+                                    <div class="flex items-center justify-between">
+                                        <button onclick="app.login()" class="btn-apple btn-primary px-4 py-2">Sign in</button>
+                                        <button onclick="app.showRegister()" class="btn-secondary px-3 py-2">Register</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="modal-register" class="fixed inset-0 z-70 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+                            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="font-bold">Register (request approval)</h4>
+                                    <button onclick="app.closeModal('modal-register')" class="text-gray-500"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div class="space-y-3">
+                                    <input id="reg-username" class="apple-input w-full" placeholder="Username">
+                                    <input id="reg-display" class="apple-input w-full" placeholder="Display name">
+                                    <input id="reg-password" type="password" class="apple-input w-full" placeholder="Password">
+                                    <div class="text-xs text-gray-500">New registrations require admin approval before they can act in the system.</div>
+                                    <div class="mt-3 text-right">
+                                        <button onclick="app.register()" class="btn-apple btn-primary px-4 py-2">Request Access</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="modal-admin-users" class="fixed inset-0 z-70 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+                            <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="font-bold">Admin: User Management</h4>
+                                    <button onclick="app.closeModal('modal-admin-users')" class="text-gray-500"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="text-xs text-gray-500">Approve or remove pending users</div>
+                                </div>
+                                <div id="admin-users-list" class="max-h-64 overflow-auto text-sm"></div>
+                                <div class="mt-4 text-right">
+                                    <button onclick="app.closeModal('modal-admin-users')" class="btn-secondary px-4 py-2 mr-2">Close</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    <div class="glass-panel p-6">
+                        <h4 class="font-bold mb-3">Deep Dive</h4>
+                        <div class="text-sm text-gray-600 mb-2">จุดคุ้มทุน (คงเหลือต้องเก็บ)</div>
+                        <div class="text-2xl font-bold text-gray-900 mb-4" id="deep-breakeven">0 ฿</div>
+                        <div class="text-sm text-gray-600 mb-2">เป้ารวม</div>
+                        <div class="text-2xl font-bold text-blue-600" id="deep-target">0 ฿</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-list" class="page-view hidden fade-in max-w-7xl mx-auto">
+                <div class="glass-panel p-6 mb-6 flex gap-4 items-end">
+                    <div class="flex-1">
+                        <label class="text-xs font-bold text-gray-500 mb-1 block">ค้นหา</label>
+                        <input id="search-text" onkeyup="app._debouncedRender()" type="text" placeholder="ค้นหาเลขที่สัญญา หรือ ชื่อลูกค้า" class="apple-input w-full text-sm">
+                    </div>
+                    <div class="w-40">
+                        <label class="text-xs font-bold text-gray-500 mb-1 block">จาก</label>
+                        <input id="list-start" onchange="app.renderTable()" type="date" class="apple-input w-full text-sm">
+                    </div>
+                    <div class="w-40">
+                        <label class="text-xs font-bold text-gray-500 mb-1 block">ถึง</label>
+                        <input id="list-end" onchange="app.renderTable()" type="date" class="apple-input w-full text-sm">
+                    </div>
+                    <div class="w-48">
+                        <label class="text-xs font-bold text-gray-500 mb-1 block">สถานะ</label>
+                        <select id="filter-status" onchange="app.renderTable()" class="apple-input w-full cursor-pointer">
+                            <option value="all">ทั้งหมด</option>
+                            <option value="Approved">รออนุมัติ</option>
+                            <option value="Active">ในระบบ</option>
+                            <option value="Closed">สิ้นสุด / ปิดบัญชี</option>
+                            <option value="Cancelled">ยกเลิก</option>
+                            <option value="Asset Return">คืนสินทรัพย์</option>
+                        </select>
+                    </div>
+                    <div class="w-48">
+                        <label class="text-xs font-bold text-gray-500 mb-1 block">การเงิน</label>
+                        <select id="filter-finance" onchange="app.renderTable()" class="apple-input w-full cursor-pointer">
+                            <option value="all">ทั้งหมด</option>
+                            <option value="Paid">ปกติ</option>
+                            <option value="Overdue">ค้างชำระ</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 text-right">
+                        <button onclick="app.init()" class="btn-secondary px-5 py-2.5 mr-2"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        <label class="btn-secondary px-4 py-2 mr-2 cursor-pointer">
+                            <i class="fas fa-file-csv mr-2"></i> Import CSV
+                            <input type="file" id="csv-input" accept=".csv" class="hidden" onchange="app.importCSV(event)">
+                        </label>
+                        <button onclick="app.exportFilteredCSV()" class="btn-secondary px-4 py-2 mr-2"><i class="fas fa-file-csv mr-2"></i>Export CSV</button>
+                        <button onclick="app.exportFilteredExcel()" class="btn-secondary px-4 py-2 mr-2"><i class="fas fa-file-excel mr-2"></i>Export Excel</button>
+                        <a href="csv/template-contracts.csv" class="btn-secondary px-4 py-2 mr-2" onclick="app.downloadTemplate(event)" rel="noopener noreferrer"><i class="fas fa-download mr-2"></i>Download Template</a>
+                        <button onclick="app.clearData()" class="btn-secondary px-4 py-2">Reset Data</button>
+                        <button onclick="app.loadMockData()" title="Load mock dataset for PR preview" class="btn-secondary px-4 py-2 ml-2">Load Mock Data</button>
+                    </div>
+                </div>
+
+                <div id="csv-preview" class="glass-panel p-4 mb-6 hidden">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="text-sm font-bold">CSV Preview</div>
+                        <div>
+                            <button onclick="app.confirmImport()" class="btn-apple btn-primary px-4 py-1 mr-2">Import</button>
+                            <button onclick="$('#csv-preview').addClass('hidden'); app._csvBuffer = null;" class="btn-secondary px-3 py-1">ยกเลิก</button>
+                        </div>
+                    </div>
+                    <div id="csv-preview-table" class="overflow-auto max-h-56 text-xs text-gray-700"></div>
+                </div>
+
+                <div class="glass-panel overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-4">สถานะ</th>
+                                <th class="px-6 py-4">เลขที่สัญญา</th>
+                                <th class="px-6 py-4">ลูกค้า</th>
+                                <th class="px-6 py-4">ประเภท</th>
+                                <th class="px-6 py-4">วันที่เริ่ม</th>
+                                <th class="px-6 py-4">ค้างชำระ</th>
+                                <th class="px-6 py-4 text-right">ยอดคงเหลือ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-gray-100 bg-white/50"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-assets" class="page-view hidden fade-in max-w-7xl mx-auto">
+                <div class="glass-panel p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-gray-800" id="asset-title">รายการสินทรัพย์</h3>
+                        <div class="flex items-center gap-3">
+                            <select id="asset-filter" onchange="app.renderAssets(this.value)" class="apple-input text-sm">
+                                <option value="assets-leased">เครื่องในระบบผ่อน</option>
+                                <option value="assets-stock">STOCK (รับคืน)</option>
+                            </select>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold" id="asset-count">0</span>
+                        </div>
+                    </div>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-orange-50 text-orange-800 uppercase text-[10px] font-bold">
+                            <tr>
+                                <th class="px-6 py-3 rounded-l-lg">รหัสทรัพย์</th>
+                                <th class="px-6 py-3">รุ่นสินค้า</th>
+                                <th class="px-6 py-3">สถานะ</th>
+                                <th class="px-6 py-3 text-right">ต้นทุน</th>
+                                <th class="px-6 py-3 text-right rounded-r-lg">ราคาประเมิน</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-assets" class="divide-y divide-gray-100 bg-white/50"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-receipts" class="page-view hidden fade-in max-w-4xl mx-auto">
+                <div class="glass-panel p-8">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6 border-b pb-4">ตั้งค่าใบเสร็จรับเงิน</h3>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase block mb-1">ชื่อบริษัท</label>
+                                <input type="text" id="rcpt-company-name" class="apple-input w-full" value="บริษัท ที แอสเซท แมเนจเม้นท์ จำกัด">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase block mb-1">ที่อยู่</label>
+                                <textarea id="rcpt-company-address" class="apple-input w-full h-24">123/45 อาคารทีพลัส ชั้น 9 ถนนสุขุมวิท แขวงคลองตัน เขตคลองเตย กรุงเทพฯ 10110</textarea>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 uppercase block mb-1">เลขประจำตัวผู้เสียภาษี</label>
+                                <input type="text" id="rcpt-tax-id" class="apple-input w-full" value="010556XXXXXXX">
+                            </div>
+                        </div>
+                        <div class="bg-gray-100 rounded-2xl p-6 flex flex-col justify-center items-center text-center">
+                            <p class="text-xs text-gray-500 uppercase mb-2">Format เลขที่ใบเสร็จ</p>
+                            <p class="text-2xl font-mono font-bold text-blue-600" id="rcp-preview">AMC-XXXX</p>
+                            <p class="text-xs text-orange-500 mt-2 bg-orange-100 px-2 py-1 rounded">* รันเลขใหม่ทุกเดือน (ตามที่ร้องขอ)</p>
+                            <div class="mt-4 p-4 border rounded-lg bg-white w-full text-left text-xs">
+                                <h5 class="font-bold mb-2">ตัวอย่างใบเสร็จ</h5>
+                                <div id="receipt-template-preview" class="space-y-1 text-gray-600">
+                                    <p><strong>ผู้รับเงิน:</strong> <span id="preview-company-name"></span></p>
+                                    <p><strong>ที่อยู่:</strong> <span id="preview-company-address"></span></p>
+                                    <p><strong>เลขประจำตัว:</strong> <span id="preview-tax-id"></span></p>
+                                    <hr class="my-2">
+                                    <p><strong>เลขที่:</strong> <span id="preview-rcpt-no"></span></p>
+                                    <p><strong>ลูกค้า:</strong> สมชาย ใจดี</p>
+                                    <p><strong>สำหรับสัญญา:</strong> C-1001</p>
+                                    <p><strong>จำนวน:</strong> 500.00 บาท</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 text-right">
+                        <button onclick="app.saveReceiptSettings()" class="btn-apple btn-primary px-6 py-2 shadow-lg">บันทึกการตั้งค่า</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers / CRM view -->
+            <div id="view-customers" class="page-view hidden fade-in max-w-4xl mx-auto">
+                <div class="glass-panel p-6 text-gray-700">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold mb-1">ลูกค้า (CRM)</h3>
+                            <p class="text-sm text-gray-500">จัดการรายชื่อลูกค้า และเปิดดูสัญญาที่เกี่ยวข้อง</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input id="cust-search" oninput="app.renderCustomers(this.value)" type="text" placeholder="ค้นหาชื่อลูกค้า หรือ เบอร์โทร" class="apple-input text-sm" />
+                            <button onclick="app.exportAllCustomers()" class="btn-secondary px-3 py-2 text-sm">Export All</button>
+                        </div>
+                    </div>
+                    <div class="mt-2" id="customers-list">
+                        <div class="p-4 bg-white rounded-xl border">ไม่มีข้อมูลตัวอย่าง</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-detail" class="page-view hidden fade-in pb-20 max-w-7xl mx-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2">
+                        <button onclick="app.navTo('list')" class="btn-secondary px-4 py-2 text-xs flex items-center gap-2"><i class="fas fa-chevron-left"></i> กลับ</button>
+                        <div class="glass-panel p-1 flex gap-1">
+                            <button onclick="app.skipTo('col-customer')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">รายละเอียดลูกค้า</button>
+                            <button onclick="app.skipTo('col-images')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">รูปภาพ</button>
+                            <button onclick="app.skipTo('col-payment')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">ผ่อนชำระ</button>
+                            <button onclick="app.skipTo('col-timeline')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">Timeline</button>
+                        </div>
+                    </div>
+                    <div>
+                        <span id="det-status" class="badge bg-gray-100 text-gray-500 px-2 py-1 rounded text-[10px] font-bold uppercase">STATUS</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-6">
+                    <div id="col-customer" class="col-span-12 md:col-span-3 space-y-6">
+                        <div class="glass-panel p-6">
+                            <h3 class="font-bold text-lg text-gray-900 mb-2">รายละเอียดลูกค้า</h3>
+                            <p class="text-sm"><strong id="det-name">-</strong></p>
+                            <p class="text-xs text-gray-500 font-mono mt-1" id="det-id">C-XXXX</p>
+                            <div class="space-y-2 text-sm text-gray-600 mt-4">
+                                <p><span class="text-gray-600">เบอร์โทร:</span> <span class="font-bold" id="det-phone">-</span></p>
+                                <p><span class="text-gray-600">วันที่สัญญา:</span> <span id="det-date">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="col-images" class="col-span-12 md:col-span-3 space-y-6">
+                        <div class="glass-panel p-6">
+                            <h3 class="font-bold text-lg text-gray-900 mb-2">รูปภาพสัญญา / แนบไฟล์</h3>
+                            <div id="attachments" class="space-y-2">
+                                <p class="text-xs text-gray-400">ยังไม่มีไฟล์แนบ</p>
+                                <div class="mt-2">
+                                    <label class="btn-secondary inline-block px-3 py-2 cursor-pointer">
+                                        แนบไฟล์
+                                        <input type="file" class="hidden attach-file-input" onchange="app.addAttachment(event)">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="col-payment" class="col-span-12 md:col-span-3 space-y-6">
+                        <div class="glass-panel p-6">
+                            <h3 class="font-bold text-lg text-gray-900 mb-2">การชำระ & ต้นทุน</h3>
+                            <p class="text-sm text-gray-600">ยอดคงเหลือ: <span id="det-balance">0.00</span></p>
+                            <p class="text-sm text-gray-600">ต้นทุนสินค้า: <span id="det-cost">-</span></p>
+                            <div class="mt-3">
+                                <label class="text-xs text-gray-500 block">ความคืบหน้าการผ่อน</label>
+                                <div class="w-full bg-gray-100 rounded-full h-4 mt-2 overflow-hidden">
+                                    <div id="payment-progress-bar" class="h-4 bg-blue-400 w-0"></div>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">ชำระแล้ว <span id="payment-percent">0%</span></div>
+                            </div>
+                            <div class="mt-4">
+                                <button onclick="app.openPaymentModal()" class="btn-apple btn-primary px-4 py-2 mr-2"><i class="fas fa-credit-card mr-2"></i> ชำระเงิน</button>
+                            </div>
+
+                            <div class="mt-6 grid grid-cols-1 gap-2">
+                                <button onclick="app.updateStatus('Closed')" class="btn-secondary py-2 text-xs hover:text-red-600">ปิดบัญชี</button>
+                                <button onclick="app.updateStatus('Asset Return')" class="btn-secondary py-2 text-xs hover:text-orange-600">คืนเครื่อง</button>
+                                <button onclick="app.updateStatus('Cancelled')" class="btn-secondary py-2 text-xs">ยกเลิกสัญญา</button>
+                            </div>
+                            <div class="mt-4">
+                                <h4 class="font-bold text-sm mb-2">ประวัติการชำระเงิน</h4>
+                                <div class="overflow-auto max-h-44 bg-white/50 p-2 rounded">
+                                    <table class="w-full text-sm text-left" id="mini-history">
+                                        <thead class="text-xs text-gray-500"><tr><th class="px-2 py-1">วันที่</th><th class="px-2 py-1">ประเภท</th><th class="px-2 py-1 text-right">จำนวน</th><th class="px-2 py-1">ใบเสร็จ</th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="col-timeline" class="col-span-12 md:col-span-3 space-y-6">
+                        <div class="glass-panel p-6">
+                            <h3 class="font-bold text-lg text-gray-900 mb-2">Timeline</h3>
+                            <div class="flex gap-3 mb-6">
+                                <input type="text" id="timeline-input" class="apple-input w-full text-sm" placeholder="บันทึกข้อความ...">
+                                <button onclick="app.addTimeline()" class="btn-apple btn-primary px-4 text-xs">โพสต์</button>
+                                <label class="btn-secondary px-3 py-2 cursor-pointer">
+                                    <i class="fas fa-paperclip mr-2"></i> แนบ
+                                    <input type="file" id="timeline-file" class="hidden" multiple>
+                                </label>
+                            </div>
+                            <div class="space-y-4 pl-2" id="timeline-feed"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="modal-payment" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-md fade-in">
+        <div class="bg-white w-full max-w-md rounded-[2rem] shadow-2xl p-8 transform scale-100">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-900">ชำระเงิน</h3>
+                <button onclick="app.closeModal('modal-payment')" class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="space-y-5">
+                <div class="flex justify-between items-center bg-blue-50 px-4 py-3 rounded-2xl border border-blue-100">
+                    <div><p class="text-[10px] text-blue-600 font-bold uppercase">ยอดคงเหลือ</p><h4 class="text-lg font-bold text-gray-900" id="pay-modal-balance">0</h4></div>
+                    <span class="text-[10px] text-orange-600 bg-orange-100 px-3 py-1 rounded-full font-bold border border-orange-200">Fee 100.-</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div onclick="app.setPayType('min')" class="pay-option p-3 rounded-xl text-center border" id="btn-min"><div class="font-bold text-xs">ขั้นต่ำ</div><div class="text-[10px] text-gray-500">500.-</div></div>
+                    <div onclick="app.setPayType('bill')" class="pay-option p-3 rounded-xl text-center border" id="btn-bill"><div class="font-bold text-xs">ตามบิล</div><div class="text-[10px] text-blue-500 font-bold" id="lbl-installment">-</div></div>
+                    <div onclick="app.setPayType('close')" class="pay-option p-3 rounded-xl text-center border" id="btn-close"><div class="font-bold text-xs">ปิดบัญชี</div><div class="text-[10px] text-gray-500">ลดพิเศษ</div></div>
+                </div>
+                <input type="hidden" id="pay-type" value="min">
+
+                <div class="relative">
+                    <span class="absolute left-4 top-3.5 text-gray-400 font-bold">฿</span>
+                    <input type="number" id="pay-amount" class="apple-input w-full text-2xl font-bold text-right pr-4 text-blue-600 bg-gray-50" placeholder="0.00">
+                </div>
+
+                <div id="div-discount" class="hidden bg-gray-50 p-3 rounded-xl">
+                    <label class="text-xs font-bold text-gray-500 mb-1 block">ส่วนลด (%)</label>
+                    <select id="pay-discount" onchange="app.calcCloseAmount()" class="apple-input w-full text-sm bg-white"><option value="0">ไม่มี</option><option value="0.05">5%</option><option value="0.10">10%</option></select>
+                </div>
+
+                <label class="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50">
+                    <input type="checkbox" id="req-receipt" class="w-4 h-4 text-blue-600 rounded">
+                    <span class="text-sm font-medium text-gray-700">ขอใบเสร็จรับเงิน (E-Receipt)</span>
+                </label>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="date" class="apple-input w-full text-xs" id="pay-date">
+                    <div class="relative"><input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"><div class="apple-input w-full text-xs text-center text-gray-400 flex justify-center gap-2"><i class="fas fa-upload"></i> แนบสลิป</div></div>
+                </div>
+
+                <button onclick="app.submitPayment()" class="w-full btn-apple btn-primary py-3.5 shadow-lg text-sm">ยืนยันการชำระ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-approve" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-md fade-in">
+        <div class="bg-white w-full max-w-sm p-8 rounded-3xl shadow-2xl text-center">
+            <div class="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-2xl mb-4"><i class="fas fa-check"></i></div>
+            <h3 class="text-xl font-bold text-gray-900">ยืนยันการอนุมัติ</h3>
+            <p class="text-xs text-gray-500 mb-6">กรุณากรอกรหัสผ่าน Admin (1234)</p>
+            <input type="password" id="approve-pass" class="apple-input w-full text-center mb-6 text-lg tracking-widest bg-gray-50" placeholder="••••••">
+            <div class="flex gap-3">
+                <button onclick="app.closeModal('modal-approve')" class="flex-1 btn-secondary py-2.5">ยกเลิก</button>
+                <button onclick="app.confirmApprove()" class="flex-1 btn-apple btn-primary py-2.5 bg-green-600 shadow-lg">ยืนยัน</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-attachment" class="fixed inset-0 z-60 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h4 id="att-title" class="font-bold">Preview</h4>
+                <button onclick="app.closeModal('modal-attachment')" class="text-gray-500"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="att-body" class="min-h-[320px] flex items-center justify-center overflow-auto"></div>
+        </div>
+    </div>
+
+    <div id="modal-customer" class="fixed inset-0 z-55 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h4 id="cust-title" class="font-bold">Customer</h4>
+                <button onclick="app.closeModal('modal-customer')" class="text-gray-500"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="cust-body" class="max-h-[60vh] overflow-auto text-sm">
+                <!-- filled dynamically -->
+            </div>
+            <div class="mt-4 text-right">
+                <button onclick="app.exportCustomerContracts()" class="btn-secondary px-4 py-2 mr-2">Export CSV</button>
+                <button onclick="app.addSamplePayments()" class="btn-secondary px-4 py-2 mr-2">Add Sample Payments</button>
+                <button onclick="app.closeModal('modal-customer')" class="btn-apple btn-primary px-4 py-2">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings modal for upload token -->
+    <div id="modal-settings" class="fixed inset-0 z-55 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="font-bold">Settings</h4>
+                <button onclick="app.closeModal('modal-settings')" class="text-gray-500"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-3">
+                <label class="text-xs font-bold text-gray-500">Upload Token (optional)</label>
+                <input id="setting-upload-token" type="text" class="apple-input w-full text-sm" placeholder="Paste upload token to enable protected uploads" />
+                <div class="text-xs text-gray-400">If a token is set here, the client will send it as header <code>x-upload-token</code> on uploads.</div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500">Yalecom call template (optional)</label>
+                    <input id="setting-yalecom" type="text" class="apple-input w-full text-sm" placeholder="e.g. yalecom://call?to=%s" />
+                    <div class="text-xs text-gray-400">Use <code>%s</code> to inject phone number. If empty, the app will use <code>tel:</code>.</div>
+                </div>
+                <div class="mt-4 text-right">
+                        <button onclick="app.saveSettings()" class="btn-apple btn-primary px-4 py-2">Save</button>
+                        <button onclick="app.showCallLogs()" class="btn-secondary px-4 py-2 ml-2">View Call Logs</button>
+                        <button onclick="app.showStatusLogs()" class="btn-secondary px-4 py-2 ml-2">View Status Logs</button>
+                    <!-- Status Change Logs modal -->
+                    <div id="modal-status-logs" class="fixed inset-0 z-60 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+                        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-bold">Status Change Logs</h4>
+                                <button onclick="app.closeModal('modal-status-logs')" class="text-gray-500"><i class="fas fa-times"></i></button>
+                            </div>
+                            <div class="mb-3 text-xs text-gray-500">บันทึกการเปลี่ยนสถานะสัญญา (localStorage)</div>
+                            <div id="status-logs-list" class="max-h-64 overflow-auto text-sm border rounded p-2 bg-gray-50"></div>
+                            <div class="mt-4 text-right">
+                                <button onclick="app.clearStatusLogs()" class="btn-secondary px-4 py-2 mr-2">Clear Logs</button>
+                                <button onclick="app.closeModal('modal-status-logs')" class="btn-apple btn-primary px-4 py-2">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Call Logs modal -->
+        <div id="modal-call-logs" class="fixed inset-0 z-60 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="font-bold">Call Logs</h4>
+                    <button onclick="app.closeModal('modal-call-logs')" class="text-gray-500"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="mb-3 text-xs text-gray-500">บันทึกการโทรล่าสุด (เก็บที่ localStorage)</div>
+                <div id="call-logs-list" class="max-h-64 overflow-auto text-sm border rounded p-2 bg-gray-50"></div>
+                <div class="mt-4 text-right">
+                    <button onclick="app.clearCallLogs()" class="btn-secondary px-4 py-2 mr-2">Clear Logs</button>
+                    <button onclick="app.closeModal('modal-call-logs')" class="btn-apple btn-primary px-4 py-2">Close</button>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        const app = {
+            storageKey: 'tms_contracts_v1',
+            data: { contracts: [], assets: [], receiptCounter: 1, currentId: null },
+            init: function() {
+                // load from localStorage if available (migrated schema supports {contracts, assets})
+                const saved = localStorage.getItem(this.storageKey);
+                if(saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        // backwards compatibility: older storage may be array of contracts
+                        if(Array.isArray(parsed)) { this.data.contracts = parsed; }
+                        else { this.data.contracts = parsed.contracts || []; this.data.assets = parsed.assets || []; }
+                    } catch(e) { this.data.contracts = []; this.data.assets = []; }
+                }
+
+                if(!this.data.contracts || this.data.contracts.length === 0) {
+                    this.data.contracts = [
+                    { id: 'C-1001', name: 'สมชาย ใจดี', phone: '081-111-2222', date: '2024-01-15', status: 'Active', total: 35000, paid: 15000, before: 5000, installments: 12, payments: [], fee_paid: false, cost: 20000, resale: 0 },
+                    { id: 'C-1002', name: 'วิภา รักเรียน', phone: '089-222-3333', date: '2023-05-20', status: 'Active', total: 20000, paid: 5000, before: 0, installments: 10, payments: [], fee_paid: true, cost: 10000, resale: 0 },
+                    { id: 'C-1003', name: 'กล้าหาญ ชาญชัย', phone: '090-555-5555', date: '2025-02-18', status: 'Approved', total: 42000, paid: 0, before: 0, installments: 12, payments: [], fee_paid: false, cost: 22000, resale: 0 },
+                    { id: 'C-1004', name: 'มานี มีทรัพย์', phone: '061-444-3333', date: '2023-10-10', status: 'Asset Return', total: 15000, paid: 2000, before: 1000, installments: 6, payments: [], fee_paid: true, cost: 12000, resale: 10000 }
+                    ];
+                    // generate assets list from contracts for initial demo
+                    this.data.assets = [];
+                    this.data.contracts.forEach(c => {
+                        const ast = { assetId: c.id + '-AST', contractId: c.id, model: 'iPhone 15 Pro', status: c.status === 'Asset Return' ? 'stock' : 'leased', cost: c.cost||0, resale: c.resale||0 };
+                        this.data.assets.push(ast);
+                    });
+                    this.saveData();
+                }
+                
+                const today = new Date().toISOString().slice(0,10);
+                $('#pay-date').val(today);
+                $('#rcp-preview').text(`AMC-${today.replace(/-/g,'')}-XXXX`);
+                // load client upload token from localStorage (if set via settings)
+                try{
+                    const t = localStorage.getItem('upload_token');
+                    if(t && t.length) window.UPLOAD_TOKEN = t;
+                }catch(e){}
+                this.initCharts();
+                this.renderDashboard();
+                this.renderTable();
+                this.renderCustomers();
+                // load users and update header if someone signed in
+                try{ this.loadUsers(); }catch(e){}
+                try{ this.updateHeaderUser(); }catch(e){}
+                // mark app ready for automated tests
+                try{ window.APP_READY = true; console.log('APP_READY'); }catch(e){}
+                this.loadReceiptSettings();
+            },
+
+            saveData: function(){
+                try { localStorage.setItem(this.storageKey, JSON.stringify({ contracts: this.data.contracts, assets: this.data.assets })); } catch(e) { console.warn('save failed', e); }
+            },
+
+            clearData: function(){
+                if(!confirm('รีเซ็ตข้อมูล ตัวอย่างและลบข้อมูลที่บันทึกไว้?')) return;
+                localStorage.removeItem(this.storageKey);
+                location.reload();
+            },
+
+            navTo: function(page, el, filter) {
+                if(el) { $('.menu-item').removeClass('active'); $(el).addClass('active'); }
+                $('.page-view').addClass('hidden');
+                
+                if(page === 'dashboard') { $('#view-dashboard').removeClass('hidden'); $('#page-title').text('Overview'); this.renderDashboard(); }
+                else if (page === 'list') { 
+                    $('#view-list').removeClass('hidden'); 
+                    $('#page-title').text('รายการสัญญา'); 
+                    if(filter) $('#filter-status').val(filter); 
+                    this.renderTable(); 
+                }
+                else if (page.startsWith('assets')) { $('#view-assets').removeClass('hidden'); this.renderAssets(page); }
+                else if (page === 'customers') { $('#view-customers').removeClass('hidden'); $('#page-title').text('ลูกค้า (CRM)'); this.renderCustomers(); }
+                else { $('#view-' + page).removeClass('hidden'); $('#page-title').text('System'); }
+            },
+            
+            scrollTo: function(id) { document.getElementById(id).scrollIntoView({behavior:'smooth', block:'center'}); },
+            toggleSub: function(id) { $('#'+id).slideToggle(200); },
+            openModal: function(id) { $('#'+id).removeClass('hidden').addClass('flex'); },
+            closeModal: function(id) { $('#'+id).addClass('hidden').removeClass('flex'); },
+
+            calcOverdue: function(dateStr, status) {
+                if(!dateStr || status !== 'Active') return { text:'ปกติ', isOverdue:false, days:0 };
+                const start = new Date(dateStr);
+                const now = new Date();
+                const diff = Math.floor((now - start)/(1000*60*60*24));
+                if(diff <= 30) return { text: `${diff} วัน`, isOverdue:false, days: diff };
+                const years = Math.floor(diff / 365);
+                let rem = diff % 365;
+                const months = Math.floor(rem / 30);
+                const days = rem % 30;
+                const parts = [];
+                if(years) parts.push(`${years} ปี`);
+                if(months) parts.push(`${months} เดือน`);
+                if(days) parts.push(`${days} วัน`);
+                return { text: `${parts.join(' ')}`, isOverdue:true, days: diff };
+            },
+
+            renderDashboard: function() {
+                const c = this.data.contracts;
+                // apply optional date filter
+                const s = $('#dash-start').val();
+                const e = $('#dash-end').val();
+                let list = c;
+                if(s || e) {
+                    const start = s ? new Date(s) : new Date('1970-01-01');
+                    const end = e ? new Date(e) : new Date();
+                    list = c.filter(x => { const d = new Date(x.date); return d >= start && d <= end; });
+                }
+                const paid = list.reduce((s,x)=>s+(x.paid||0),0);
+                const before = list.reduce((s,x)=>s+(x.before||0),0);
+                $('#d-collected').text((paid - before).toLocaleString() + ' ฿');
+                $('#d-active').text(list.filter(x=>x.status==='Active').length);
+                $('#d-pending').text(list.filter(x=>x.status==='Approved').length);
+                $('#d-overdue').text(list.filter(x=> this.calcOverdue(x.date, x.status).isOverdue).length);
+                // update charts with the filtered list
+                try{ this.updateCharts(list); }catch(e){ console.warn('updateCharts failed', e); }
+            },
+
+            initCharts: function(){
+                // initialize Chart.js instances
+                try{
+                    const el1 = document.getElementById('chart-status');
+                    const el2 = document.getElementById('chart-revenue');
+                    if(el1 && !this._chartStatus){
+                        const ctx1 = el1.getContext('2d');
+                        this._chartStatus = new Chart(ctx1, {
+                            type: 'doughnut',
+                            data: { labels: ['Active','Approved','Closed','Asset Return'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#10B981','#3B82F6','#EF4444','#F97316'] }] },
+                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                        });
+                    }
+                    if(el2 && !this._chartRevenue){
+                        const ctx2 = el2.getContext('2d');
+                        this._chartRevenue = new Chart(ctx2, {
+                            type: 'bar',
+                            data: { labels: [], datasets: [{ label: 'Collected', data: [], backgroundColor: '#60A5FA' }] },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: { y: { beginAtZero: true, ticks: { callback: function(v){ return Number(v).toLocaleString(); } } } },
+                                plugins: {
+                                    tooltip: { callbacks: { label: function(ctx){ return '฿ ' + Number(ctx.parsed.y).toLocaleString(); } } }
+                                }
+                            }
+                        });
+                    }
+                }catch(err){ console.warn('Chart init error', err); }
+            },
+
+            updateCharts: function(list){
+                // update status doughnut
+                list = list || this.data.contracts || [];
+                const byStatus = { Active:0, Approved:0, Closed:0, 'Asset Return':0, Other:0 };
+                list.forEach(c => { if(byStatus[c.status] !== undefined) byStatus[c.status]++; else byStatus.Other++; });
+                if(this._chartStatus){
+                    this._chartStatus.data.labels = Object.keys(byStatus);
+                    this._chartStatus.data.datasets = [{ data: Object.values(byStatus), backgroundColor: ['#10B981','#3B82F6','#EF4444','#F97316','#9CA3AF'] }];
+                    this._chartStatus.update();
+                }
+
+                // revenue by month (collected) — include months in selected dashboard range
+                const rev = {};
+                let startMonth = null, endMonth = null;
+                try{
+                    const s = $('#dash-start').val();
+                    const e = $('#dash-end').val();
+                    if(s) startMonth = new Date(s);
+                    if(e) endMonth = new Date(e);
+                }catch(e){}
+                list.forEach(c => {
+                    try{
+                        const d = new Date(c.date);
+                        const key = d.toISOString().slice(0,7);
+                        rev[key] = (rev[key] || 0) + (Number(c.paid) || 0);
+                        if(!startMonth || d < startMonth) startMonth = d;
+                        if(!endMonth || d > endMonth) endMonth = d;
+                    }catch(e){}
+                });
+                // build contiguous month labels between startMonth and endMonth
+                const months = [];
+                const values = [];
+                if(startMonth && endMonth){
+                    const cur = new Date(startMonth.getFullYear(), startMonth.getMonth(), 1);
+                    const last = new Date(endMonth.getFullYear(), endMonth.getMonth(), 1);
+                    while(cur <= last){
+                        const key = cur.toISOString().slice(0,7);
+                        months.push(key);
+                        values.push(rev[key] || 0);
+                        cur.setMonth(cur.getMonth()+1);
+                    }
+                }
+                if(this._chartRevenue){
+                    this._chartRevenue.data.labels = months;
+                    this._chartRevenue.data.datasets = [{ label: 'Collected', data: values, backgroundColor: '#60A5FA' }];
+                    this._chartRevenue.update();
+                }
+
+                // update deep dive metrics
+                const collected = list.reduce((s,x)=>s+(Number(x.paid)||0),0);
+                const before = list.reduce((s,x)=>s+(Number(x.before)||0),0);
+                $('#deep-breakeven').text((collected - before).toLocaleString() + ' ฿');
+                $('#deep-target').text((list.reduce((s,x)=>s+(Number(x.total)||0),0)).toLocaleString() + ' ฿');
+            },
+
+            _downloadBlob: function(filename, blob){
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+                setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 5000);
+            },
+
+            exportFilteredCSV: function(){
+                const list = this._lastFilteredList && this._lastFilteredList.length ? this._lastFilteredList : this.data.contracts;
+                if(!list || list.length === 0){ Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูลเพื่อส่งออก' }); return; }
+                const headers = ['id','name','phone','date','status','total','paid','installments','cost','resale','planType'];
+                const rows = [headers.join(',')];
+                list.forEach(r => {
+                    const vals = headers.map(h => {
+                        const v = r[h] === undefined || r[h] === null ? '' : String(r[h]).replace(/"/g,'""');
+                        return `"${v}"`;
+                    });
+                    rows.push(vals.join(','));
+                });
+                const csv = rows.join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                this._downloadBlob('contracts_export.csv', blob);
+            },
+
+            exportFilteredExcel: function(){
+                const list = this._lastFilteredList && this._lastFilteredList.length ? this._lastFilteredList : this.data.contracts;
+                if(!list || list.length === 0){ Swal.fire({ icon: 'info', title: 'ไม่มีข้อมูลเพื่อส่งออก' }); return; }
+                if(window.XLSX){
+                    const headers = ['id','name','phone','date','status','total','paid','installments','cost','resale','planType'];
+                    const sheetData = list.map(r => {
+                        const row = {};
+                        headers.forEach(h => row[h] = r[h] === undefined || r[h] === null ? '' : r[h]);
+                        return row;
+                    });
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.json_to_sheet(sheetData);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Contracts');
+                    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                    this._downloadBlob('contracts_export.xlsx', blob);
+                } else {
+                    // fallback to CSV
+                    this.exportFilteredCSV();
+                }
+            },
+
+            downloadTemplate: async function(e){
+                // Prevent default navigation and attempt to fetch the template and trigger a blob download.
+                try{
+                    if(e && e.preventDefault) e.preventDefault();
+                    const el = e && e.currentTarget ? e.currentTarget : null;
+                    const url = el ? el.getAttribute('href') : 'csv/template-contracts.csv';
+                    const resp = await fetch(url, { cache: 'no-store' });
+                    if(!resp.ok) throw new Error('Network response was not ok');
+                    const blob = await resp.blob();
+                    const filename = (url.split('/').pop()) || 'template-contracts.csv';
+                    this._downloadBlob(filename, blob);
+                } catch(err){
+                    // graceful fallback: navigate to the URL so browser handles it (or user can long-press to save on iOS)
+                    try{ window.location = (e && e.currentTarget && e.currentTarget.getAttribute('href')) || 'csv/template-contracts.csv'; }catch(e){}
+                }
+            },
+
+            renderTable: function() {
+                const tbody = $('#table-body');
+                const fStat = $('#filter-status').val();
+                const fFin = $('#filter-finance').val();
+                const q = ($('#search-text').val() || '').toLowerCase().trim();
+                const s = $('#list-start').val();
+                const e = $('#list-end').val();
+                tbody.empty();
+
+                const filtered = [];
+
+                // helper to compute overdue period in Y M D
+                const overduePeriod = (dateStr, status) => {
+                    if(!dateStr || status !== 'Active') return { text: 'ปกติ', isOverdue: false };
+                    const start = new Date(dateStr);
+                    const now = new Date();
+                    let diff = Math.floor((now - start) / (1000*60*60*24));
+                    if(diff <= 30) return { text: `${diff} วัน`, isOverdue: false, days: diff };
+                    const years = Math.floor(diff / 365);
+                    diff = diff % 365;
+                    const months = Math.floor(diff / 30);
+                    const days = diff % 30;
+                    let parts = [];
+                    if(years) parts.push(`${years} ปี`);
+                    if(months) parts.push(`${months} เดือน`);
+                    if(days) parts.push(`${days} วัน`);
+                    return { text: `${parts.join(' ')}`, isOverdue: true, days: (years*365 + months*30 + days) };
+                };
+
+                this.data.contracts.forEach(c => {
+                    // date range filter for list
+                    if((s || e) && c.date){
+                        const dt = new Date(c.date);
+                        if(s){ const st = new Date(s); if(dt < st) return; }
+                        if(e){ const en = new Date(e); if(dt > en) return; }
+                    }
+                    // search filter
+                    if(q){
+                        const hay = `${c.id} ${c.name} ${c.phone}`.toLowerCase();
+                        if(hay.indexOf(q) === -1) return;
+                    }
+
+                    const ov = overduePeriod(c.date, c.status);
+                    if(fStat !== 'all' && c.status !== fStat) return;
+                    if(fFin === 'Overdue' && !ov.isOverdue) return;
+                    if(fFin === 'Paid' && ov.isOverdue) return;
+
+                    // determine payment type
+                    let ptype = c.planType || c.type || '';
+                    if(!ptype){
+                        if(c.status === 'Asset Return') ptype = 'คืนสินทรัพย์';
+                        else if((c.installments||0) > 1) ptype = 'ผ่อนชำระ';
+                        else ptype = 'ผ่อนขั้นต่ำ';
+                    }
+
+                    filtered.push(c);
+
+                    let badge = `<span class="badge bg-gray-100 text-gray-500">${c.status}</span>`;
+                    if(c.status === 'Active') badge = `<span class="badge bg-green-100 text-green-700">Active</span>`;
+                    if(c.status === 'Approved') badge = `<span class="badge bg-blue-100 text-blue-700">Approved</span>`;
+                    if(c.status === 'Asset Return') badge = `<span class="badge bg-orange-100 text-orange-700">Return</span>`;
+
+                    let finText = `<span class="text-green-600 font-bold text-xs">ปกติ</span>`;
+                    if(ov.isOverdue) finText = `<span class="text-red-500 font-bold text-xs"><i class="fas fa-clock"></i> ค้าง ${ov.text}</span>`;
+
+                    tbody.append(`
+                        <tr class="hover:list-highlight transition border-b border-gray-100">
+                            <td class="px-6 py-4">${badge}</td>
+                            <td class="px-6 py-4 font-mono"><a href="#" onclick="app.openDetail('${c.id}');return false" class="text-blue-600 font-bold hover:underline">${c.id}</a></td>
+                            <td class="px-6 py-4 font-medium text-gray-900">${c.name}</td>
+                            <td class="px-6 py-4 text-sm text-gray-600">${ptype}</td>
+                            <td class="px-6 py-4 text-gray-500 text-xs font-mono">${c.date}</td>
+                            <td class="px-6 py-4">${finText}</td>
+                            <td class="px-6 py-4 text-right font-mono font-bold text-gray-800">${((c.total||0)-(c.paid||0)).toLocaleString()}</td>
+                        </tr>
+                    `);
+                });
+
+                this._lastFilteredList = filtered;
+
+                if(this.data.contracts.length === 0){
+                    tbody.html('<tr><td colspan="7" class="text-center py-6 text-xs text-gray-400">ไม่มีสัญญา — กรุณา Import CSV หรือตั้งค่าข้อมูลตัวอย่าง</td></tr>');
+                }
+            },
+
+            importCSV: function(e){
+                const file = e.target.files && e.target.files[0];
+                if(!file) return;
+                const self = this;
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results){
+                        if(!results || !results.data || results.data.length === 0){
+                            Swal.fire({ icon: 'error', title: 'ไฟล์ว่าง หรือ แปลงค่าไม่ได้' });
+                            return;
+                        }
+                        // store parsed rows for confirmation
+                        self._csvBuffer = results.data.map(r => {
+                            return {
+                                id: (r.id || r.ID || '').trim(),
+                                name: (r.name || r.Name || r.customer || '').trim(),
+                                phone: (r.phone || r.Phone || '').trim(),
+                                date: (r.date || r.Date || new Date().toISOString().slice(0,10)).trim(),
+                                status: (r.status || 'Active').trim(),
+                                total: Number(r.total || r.Total || 0),
+                                paid: Number(r.paid || r.Paid || 0),
+                                installments: Number(r.installments || 1),
+                                cost: Number(r.cost || 0),
+                                resale: Number(r.resale || 0),
+                                planType: (r.type || r.planType || r.plan || '').trim()
+                            };
+                        });
+                        // show preview
+                        self.showCSVPreview();
+                    },
+                    error: function(err){
+                        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาดในการอ่าน CSV', text: err.message || err });
+                    }
+                });
+                // clear input selection to allow re-upload of same file
+                $('#csv-input').val('');
+            },
+
+            showCSVPreview: function(){
+                const buf = this._csvBuffer || [];
+                const wrap = $('#csv-preview-table');
+                wrap.empty();
+                if(buf.length === 0){ wrap.html('<div class="text-xs text-gray-500">ไม่มีข้อมูลสำหรับ preview</div>'); $('#csv-preview').removeClass('hidden'); return; }
+                const table = $('<table class="w-full text-left text-xs"></table>');
+                const thead = $('<thead class="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold"></thead>');
+                const headers = Object.keys(buf[0]);
+                const trh = $('<tr></tr>'); headers.forEach(h => trh.append(`<th class="px-3 py-2">${h}</th>`)); thead.append(trh);
+                const tbody = $('<tbody></tbody>');
+
+                buf.slice(0,50).forEach(row => {
+                    const tr = $('<tr></tr>'); headers.forEach(h => tr.append(`<td class="px-3 py-1 align-top">${(row[h]===undefined)?'':row[h]}</td>`)); tbody.append(tr);
+                });
+                table.append(thead).append(tbody);
+                wrap.append(table);
+                $('#csv-preview').removeClass('hidden');
+            },
+
+            confirmImport: function(){
+                const buf = this._csvBuffer || [];
+                if(buf.length === 0) { Swal.fire({ icon: 'error', title: 'ไม่มีข้อมูลที่จะแนบ' }); return; }
+                // basic validation: require name and id
+                const valid = buf.filter(r => r.name && r.id).length;
+                if(valid !== buf.length){
+                    if(!confirm(`พบ ${buf.length-valid} แถวที่ไม่มี id หรือ name — นำเข้าข้อมูลที่ถูกต้องเท่านั้น?`)) return;
+                }
+                buf.forEach(r => {
+                    const contract = {
+                        id: r.id || ('C-'+Math.floor(Math.random()*9000+1000)),
+                        name: r.name || 'Unknown',
+                        phone: r.phone || '',
+                        date: r.date || new Date().toISOString().slice(0,10),
+                        status: r.status || 'Active',
+                        total: Number(r.total || 0),
+                        paid: Number(r.paid || 0),
+                        before: 0,
+                        installments: Number(r.installments || 1),
+                        payments: [],
+                        cost: Number(r.cost || 0),
+                        resale: Number(r.resale || 0),
+                        planType: r.planType || r.type || ''
+                    };
+                    this.data.contracts.push(contract);
+                });
+                this.saveData();
+                this.renderTable();
+                this.renderCustomers();
+                $('#csv-preview').addClass('hidden');
+                this._csvBuffer = null;
+                Swal.fire({ icon: 'success', title: 'Import สำเร็จ', text: `${buf.length} รายการถูกนำเข้า` });
+            },
+
+            openDetail: function(id) {
+                this.data.currentId = id;
+                const c = this.data.contracts.find(x => x.id === id);
+                if(!c) { Swal.fire({ icon: 'error', title: 'ไม่พบสัญญา', text: `ไม่พบสัญญา id=${id}` }); return; }
+
+                $('#view-list').addClass('hidden');
+                $('#view-detail').removeClass('hidden');
+                $('#page-title').text('Workstation');
+
+                $('#det-name').text(c.name || '-');
+                $('#det-id').text(id || '-');
+                $('#det-phone').text(c.phone || '-');
+                $('#det-date').text(c.date || '-');
+                $('#det-balance').text(((c.total || 0) - (c.paid || 0)).toLocaleString());
+                $('#det-status').text(c.status || '-');
+                $('#det-cost').text((c.cost || 0).toLocaleString());
+                // attachments (render thumbnails / links if uploaded)
+                const att = $('#attachments');
+                att.empty();
+                    if(Array.isArray(c.attachments) && c.attachments.length>0){
+                    const wrap = $('<div class="grid grid-cols-2 gap-2"></div>');
+                    c.attachments.forEach(a=>{
+                        const ext = (a.name.split('.').pop()||'').toLowerCase();
+                        let node = '';
+                        if(a.url && ['jpg','jpeg','png','gif'].includes(ext)){
+                            node = `<a href="#" onclick="app.openAttachment('${a.url}','image','${a.name}');return false"><img src="${a.url}" class="w-full h-28 object-cover rounded" alt="${a.name}"></a><div class="text-xs text-gray-500 mt-1">${a.name}</div>`;
+                        } else if(a.url && ext === 'pdf'){
+                            node = `<div class="p-3 bg-gray-50 rounded text-xs"><a href="#" onclick="app.openAttachment('${a.url}','pdf','${a.name}');return false" class="text-blue-600 hover:underline"><i class=\"fas fa-file-pdf mr-2 text-red-500\"></i>${a.name}</a></div>`;
+                        } else if(a.url && ['mp3','wav','m4a'].includes(ext)){
+                            node = `<div class="p-3 bg-gray-50 rounded text-xs"><a href="#" onclick="app.openAttachment('${a.url}','audio','${a.name}');return false" class="text-blue-600 hover:underline"><i class=\"fas fa-file-audio mr-2\"></i>${a.name}</a></div>`;
+                        } else if(a.url){
+                            node = `<div class="p-3 bg-gray-50 rounded text-xs"><a href="${a.url}" target="_blank" class="text-blue-600 hover:underline">${a.name}</a></div>`;
+                        } else {
+                            node = `<div class="p-3 bg-gray-50 rounded text-xs">${a.name}</div>`;
+                        }
+                        wrap.append(`<div>${node}</div>`);
+                    });
+                    att.append(wrap);
+                    att.append('<div class="mt-2"><label class="btn-secondary inline-block px-3 py-2 cursor-pointer">แนบเพิ่ม<input type="file" class="hidden attach-file-input" onchange="app.addAttachment(event)"></label></div>');
+                } else {
+                    att.html('<p class="text-xs text-gray-400">ยังไม่มีไฟล์แนบ</p><div class="mt-2"><label class="btn-secondary inline-block px-3 py-2 cursor-pointer">แนบไฟล์<input type="file" class="hidden attach-file-input" onchange="app.addAttachment(event)"></label></div>');
+                }
+
+                if(c.status === 'Approved') $('#action-approve').removeClass('hidden');
+                else $('#action-approve').addClass('hidden');
+
+                // render payment history into mini-history table
+                const mh = $('#mini-history');
+                mh.find('tbody').empty();
+                if(Array.isArray(c.payments) && c.payments.length > 0) {
+                    c.payments.forEach(p => {
+                        mh.find('tbody').append(`<tr><td class="px-2 py-1 text-xs text-gray-500">${p.date}</td><td class="px-2 py-1 text-xs">${p.type}</td><td class="px-2 py-1 text-xs text-right font-bold">${Number(p.amount).toLocaleString()}</td><td class="px-2 py-1 text-xs text-blue-600">${p.receipt || '-'}</td></tr>`);
+                    });
+                } else {
+                    mh.find('tbody').html('<tr><td colspan="4" class="text-center py-4 text-xs text-gray-400">ไม่มีประวัติ</td></tr>');
+                }
+
+                // update payment progress bar
+                try{
+                    const total = Number(c.total || 0);
+                    const paid = Number(c.paid || 0);
+                    const pct = total > 0 ? Math.min(100, Math.round((paid/total)*100)) : 0;
+                    $('#payment-progress-bar').css('width', pct + '%');
+                    $('#payment-percent').text(pct + '% (ชำระแล้ว ' + paid.toLocaleString() + ' / ' + total.toLocaleString() + ')');
+                }catch(e){ }
+
+                this.renderTimeline(c);
+            },
+
+            renderAssets: function(type) {
+                const tbody = $('#table-assets');
+                tbody.empty();
+                let list = [];
+
+                if(!type) type = $('#asset-filter').val() || 'assets-leased';
+                if(type === 'assets-leased') {
+                    $('#asset-title').text('สินทรัพย์ในระบบ (Leased)');
+                    list = this.data.assets.filter(a => a.status === 'leased');
+                } else {
+                    $('#asset-title').text('สต็อกสินค้า (Stock)');
+                    list = this.data.assets.filter(a => a.status === 'stock');
+                }
+                $('#asset-count').text(list.length + ' รายการ');
+
+                list.forEach(a => {
+                    tbody.append(`
+                        <tr class="hover:bg-white transition border-b border-gray-100" data-asset="${a.assetId}">
+                            <td class="px-6 py-4 font-mono text-gray-500">${a.assetId}</td>
+                            <td class="px-6 py-4 font-bold text-gray-800">${a.model || 'Unknown'}</td>
+                            <td class="px-6 py-4 text-xs">${a.status === 'stock' ? '<span class="text-orange-500 font-bold">รอขาย</span>' : '<span class="text-blue-500">อยู่กับลูกค้า</span>'}</td>
+                            <td class="px-6 py-4 text-right font-mono">${(a.cost||0).toLocaleString()}</td>
+                            <td class="px-6 py-4 text-right font-mono font-bold text-green-600">${a.resale > 0 ? (a.resale||0).toLocaleString() : '-'}</td>
+                        </tr>
+                    `);
+                });
+                if(list.length === 0) tbody.html('<tr><td colspan="5" class="text-center py-6 text-xs text-gray-400">ไม่มีรายการ</td></tr>');
+            },
+
+            renderTimeline: function(c) {
+                const feed = $('#timeline-feed');
+                feed.empty();
+                feed.append(`<div class="timeline-line"><div class="timeline-dot bg-gray-300 border-gray-100"></div><p class="text-xs text-gray-400">${c.date}</p><p class="text-sm font-bold text-gray-700">เริ่มสัญญา</p></div>`);
+                if(c.timeline) {
+                    c.timeline.forEach(t => {
+                        let html = `<div class="timeline-line"><div class="timeline-dot"></div><p class="text-xs text-gray-400">${t.time}</p><p class="text-sm font-bold text-gray-800 bg-white p-3 rounded-xl border border-gray-100 shadow-sm mt-1">${t.text}`;
+                        if(Array.isArray(t.attachments) && t.attachments.length>0){
+                            html += '<div class="mt-2 space-y-2">';
+                            t.attachments.forEach(a=>{
+                                const ext = (a.name.split('.').pop()||'').toLowerCase();
+                                let icon = '<i class="fas fa-file"></i>';
+                                if(['jpg','jpeg','png','gif'].includes(ext)) icon = '<i class="fas fa-image"></i>';
+                                if(['pdf'].includes(ext)) icon = '<i class="fas fa-file-pdf text-red-500"></i>';
+                                if(['mp3','wav','m4a'].includes(ext)) icon = '<i class="fas fa-file-audio"></i>';
+                                html += `<div class="flex items-center gap-2 text-xs text-gray-600">${icon} <span class="font-medium">${a.name}</span> <span class="text-gray-400">• ${a.time}</span></div>`;
+                            });
+                            html += '</div>';
+                        }
+                        html += '</p></div>';
+                        feed.append(html);
+                    });
+                }
+            },
+
+            // Add attachment to current contract (client-side only)
+            uploadFiles: async function(files){
+                if(!files || files.length === 0) return [];
+                // client-side validations
+                const allowed = ['jpg','jpeg','png','gif','pdf','mp3','wav','m4a','txt'];
+                const maxSize = 10 * 1024 * 1024; // 10 MB per file
+                for(const f of files){
+                    const ext = (f.name.split('.').pop()||'').toLowerCase();
+                    if(allowed.indexOf(ext) === -1){ Swal.fire({ icon: 'error', title: 'ชนิดไฟล์ไม่รองรับ', text: `ไฟล์ ${f.name} ไม่รองรับ` }); return []; }
+                    if(f.size > maxSize){ Swal.fire({ icon: 'error', title: 'ไฟล์ใหญ่เกินไป', text: `ไฟล์ ${f.name} เกิน ${Math.round(maxSize/1024/1024)}MB` }); return []; }
+                }
+                try{
+                    const fd = new FormData();
+                    files.forEach(f => fd.append('files', f));
+                    // If a global upload token is provided (for protected servers), include it
+                    const headers = {};
+                    if(window && window.UPLOAD_TOKEN) headers['x-upload-token'] = window.UPLOAD_TOKEN;
+                    const resp = await fetch('/upload', { method: 'POST', body: fd, headers });
+                    if(!resp.ok) {
+                        const txt = await resp.text();
+                        throw new Error(txt || 'Upload error');
+                    }
+                    const data = await resp.json();
+                    if(!data || !data.files) throw new Error(data && data.error ? data.error : 'Upload failed');
+                    return data.files;
+                }catch(err){
+                    console.warn('upload error', err);
+                    Swal.fire({ icon: 'error', title: 'อัปโหลดไฟล์ล้มเหลว', text: err.message || err });
+                    return [];
+                }
+            },
+
+            addAttachment: async function(e){
+                const files = e.target.files ? Array.from(e.target.files) : [];
+                if(files.length === 0) return;
+                const c = this.data.contracts.find(x=>x.id === this.data.currentId);
+                if(!c) { Swal.fire({ icon: 'error', title: 'ไม่พบสัญญา' }); return; }
+                if(!c.attachments) c.attachments = [];
+                const uploaded = await this.uploadFiles(files);
+                uploaded.forEach(u => c.attachments.push({ name: u.name, url: u.url, size: u.size, time: new Date().toLocaleString() }));
+                this.saveData();
+                this.openDetail(this.data.currentId);
+                Swal.fire({ icon: 'success', title: 'เพิ่มไฟล์แนบแล้ว' });
+            },
+
+            skipTo: function(id){
+                const el = document.getElementById(id);
+                if(!el) return;
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // small highlight
+                $(el).addClass('ring-4 ring-blue-200');
+                setTimeout(()=> $(el).removeClass('ring-4 ring-blue-200'), 1400);
+            },
+
+            updateStatus: function(status){
+                const self = this;
+                const c = this.data.contracts.find(x => x.id === this.data.currentId);
+                if(!c) { Swal.fire({ icon: 'error', title: 'ไม่พบสัญญา' }); return; }
+                // Require admin approval (password) unless currentUser is Admin/Manager
+                try{ this.currentUser = JSON.parse(localStorage.getItem('tms_user') || 'null'); }catch(e){ this.currentUser = null; }
+                const isAdmin = this.currentUser && (this.currentUser.role === 'Admin' || this.currentUser.role === 'Manager');
+                const proceedChange = (approver) => {
+                    const oldStatus = c.status;
+                    c.status = status;
+                    if(!c.timeline) c.timeline = [];
+                    if(status === 'Asset Return'){
+                        c.timeline.unshift({ time: new Date().toLocaleDateString(), text: '🔁 คืนเครื่อง → ย้ายไป STOCK' });
+                        const assetId = (c.id || 'C-') + '-AST';
+                        const exists = self.data.assets.find(a => a.assetId === assetId);
+                        if(!exists){
+                            const ast = { assetId: assetId, contractId: c.id, model: c.model || 'iPhone 15 Pro', status: 'stock', cost: c.cost || 0, resale: c.resale || 0, movedAt: new Date().toLocaleString() };
+                            self.data.assets.push(ast);
+                            c._assetAddedId = assetId;
+                        }
+                    } else if(status === 'Closed'){
+                        c.timeline.unshift({ time: new Date().toLocaleDateString(), text: '🔒 ปิดบัญชี' });
+                    } else if(status === 'Cancelled'){
+                        c.timeline.unshift({ time: new Date().toLocaleDateString(), text: '❌ ยกเลิกสัญญา' });
+                    } else {
+                        c.timeline.unshift({ time: new Date().toLocaleDateString(), text: `🔁 เปลี่ยนสถานะเป็น ${status}` });
+                    }
+                    // record status change to centralized log
+                    try{
+                        const logKey = 'status_change_log_v1';
+                        const entry = { time: new Date().toISOString(), contractId: c.id, from: oldStatus, to: status, by: approver || (this.currentUser && this.currentUser.username) || 'unknown' };
+                        const logsRaw = localStorage.getItem(logKey) || '[]';
+                        const logs = JSON.parse(logsRaw || '[]');
+                        logs.unshift(entry);
+                        localStorage.setItem(logKey, JSON.stringify(logs.slice(0,500)));
+                    }catch(e){}
+
+                    self.saveData();
+                    self.renderDashboard();
+                    self.renderTable();
+                    self.renderAssets();
+                    self.renderCustomers();
+                    self.openDetail(self.data.currentId);
+                    Swal.fire({ title: 'เปลี่ยนสถานะเรียบร้อย', text: `สถานะปัจจุบัน: ${status}`, icon: 'success' });
+                };
+
+                if(isAdmin){
+                    // admin can change directly
+                    if(!confirm(`Admin: ยืนยันเปลี่ยนสถานะ ${c.id} → ${status}?`)) return;
+                    proceedChange(this.currentUser && this.currentUser.username);
+                    return;
+                }
+
+                // non-admin: require admin password confirmation (modal exists for approve uses #approve-pass)
+                $('#approve-pass').val('');
+                $('#modal-approve').removeClass('hidden').addClass('flex');
+                const handler = () => {
+                    const pass = $('#approve-pass').val();
+                    if(pass === '1234'){
+                        $('#modal-approve').addClass('hidden').removeClass('flex');
+                        proceedChange('admin-password');
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'รหัสผ่านผิด หรือ ต้องเป็น Admin' });
+                    }
+                };
+                // Replace confirm/cancel handlers inside modal temporarily
+                $('#modal-approve').find('button').off('click');
+                $('#modal-approve').find('button:contains("ยืนยัน")').off('click').on('click', handler);
+                $('#modal-approve').find('button:contains("ยกเลิก")').off('click').on('click', ()=>{ $('#modal-approve').addClass('hidden').removeClass('flex'); });
+            },
+
+            renderCustomers: function(query){
+                const wrap = $('#customers-list');
+                wrap.empty();
+                query = (typeof query === 'string') ? query.toLowerCase().trim() : ($('#cust-search').val() || '').toLowerCase().trim();
+
+                // build map keyed by name+phone to group contracts
+                const map = {};
+                this.data.contracts.forEach(c => {
+                    if(!c.name) return;
+                    const k = (c.name||'') + '|' + (c.phone||'');
+                    map[k] = map[k] || { name: c.name||'', phone: c.phone||'', nationalId: c.nationalId || c.idCard || '', address: c.address || '', contracts: [] };
+                    map[k].contracts.push(c);
+                });
+
+                const values = Object.values(map).sort((a,b)=> b.contracts.length - a.contracts.length);
+                const filtered = values.filter(entry => {
+                    if(!query) return true;
+                    const hay = `${entry.name} ${entry.phone} ${entry.nationalId} ${entry.address} ${entry.contracts.map(x=>x.id).join(' ')}`.toLowerCase();
+                    return hay.indexOf(query) !== -1;
+                });
+
+                if(filtered.length === 0){
+                    wrap.html('<div class="p-4 bg-white rounded-xl border text-sm text-gray-400">ไม่พบลูกค้า</div>');
+                    return;
+                }
+
+                // load overrides for payment quality
+                const overridesRaw = localStorage.getItem('payment_quality_overrides') || '{}';
+                let overrides = {};
+                try{ overrides = JSON.parse(overridesRaw); }catch(e){ overrides = {}; }
+
+                filtered.forEach(entry => {
+                    const key = (entry.name||'') + '|' + (entry.phone||'');
+                    // compute payment quality: if any contract is overdue -> not good
+                    const anyOverdue = entry.contracts.some(c => this.calcOverdue(c.date, c.status).isOverdue);
+                    let quality = anyOverdue ? 'ไม่ดี' : 'ดี';
+                    if(overrides[key]) quality = overrides[key];
+
+                    // pick a representative contract id to link quick-open (first contract)
+                    const repCon = entry.contracts[0] ? entry.contracts[0].id : '';
+
+                    const row = $(
+                        `<div class="glass-panel p-3 flex items-center justify-between mb-2 customer-row">
+                            <div class="flex-1 grid grid-cols-6 gap-4 items-center">
+                                <div class="col-span-1 font-mono text-sm text-gray-700">${repCon || '-'}</div>
+                                <div class="col-span-2 font-bold text-gray-900">${entry.name}</div>
+                                <div class="col-span-1 text-sm text-gray-600">${entry.nationalId || '-'}</div>
+                                <div class="col-span-1 text-sm text-gray-600 truncate">${entry.address || '-'}</div>
+                                <div class="col-span-1 text-sm text-gray-600">${entry.phone || '-'}</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="text-xs text-gray-500 mr-2">ประวัติ: <strong class="text-sm text-${ anyOverdue ? 'red' : 'green' }-600">${quality}</strong></div>
+                                <button class="btn-secondary px-3 py-1 text-xs" onclick="app.openCustomer('${encodeURIComponent(entry.name)}','${encodeURIComponent(entry.phone||'')}')">ดูสัญญา</button>
+                                <button class="btn-apple px-3 py-1 text-xs btn-primary" onclick="app.recordCall('${entry.phone||''}','${encodeURIComponent(entry.name)}','${repCon}')">โทรทันที</button>
+                            </div>
+                        </div>`
+                    );
+
+                    // payment quality quick toggle (manual override)
+                    const qualityBtn = $(`<button class="ml-3 text-xs btn-secondary px-2 py-1">แก้ไขสถานะชำระ</button>`);
+                    qualityBtn.on('click', ()=>{
+                        const choice = prompt('ตั้งค่า ประวัติชำระ (ดี / ไม่ดี) หรือเว้นว่างเพื่อรีเซ็ต', overrides[key] || quality);
+                        if(choice === null) return;
+                        const v = (choice||'').trim();
+                        if(!v){ delete overrides[key]; }
+                        else overrides[key] = v;
+                        localStorage.setItem('payment_quality_overrides', JSON.stringify(overrides));
+                        this.renderCustomers(query);
+                    });
+                    row.find('.flex.items-center.gap-2').first().prepend(qualityBtn);
+
+                    wrap.append(row);
+                });
+            },
+
+            exportAllCustomers: function(){
+                // Export a summary CSV: name,phone,contracts_count,total_owed
+                const map = {};
+                this.data.contracts.forEach(c => {
+                    const key = (c.name||'') + '|' + (c.phone||'');
+                    map[key] = map[key] || { name: c.name||'', phone: c.phone||'', contracts: [], totalOwed: 0 };
+                    map[key].contracts.push(c.id);
+                    map[key].totalOwed += ((c.total||0)-(c.paid||0));
+                });
+                const rows = [['name','phone','contracts_count','total_owed']];
+                Object.values(map).forEach(m => rows.push([`"${String(m.name).replace(/"/g,'""')}"`, `"${String(m.phone).replace(/"/g,'""')}"`, m.contracts.length, m.totalOwed]));
+                const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], { type: 'text/csv' });
+                this._downloadBlob('customers_summary.csv', blob);
+            },
+
+            openCustomer: function(nameEnc, phoneEnc){
+                const name = decodeURIComponent(nameEnc);
+                const phone = decodeURIComponent(phoneEnc);
+                const contracts = this.data.contracts.filter(c => c.name === name && (phone === '' || c.phone === phone));
+                const body = $('#cust-body');
+                body.empty();
+                body.append(`<div class="mb-3"><strong>${name}</strong> <div class="text-xs text-gray-500">${phone}</div></div>`);
+                if(contracts.length === 0) { body.append('<div class="text-sm text-gray-500">ไม่พบสัญญาของลูกค้านี้</div>'); }
+                else{
+                    const table = $(`<table class="w-full text-sm"><thead class="text-xs text-gray-500"><tr><th class="px-2">สัญญา</th><th class="px-2">สถานะ</th><th class="px-2 text-right">คงเหลือ</th><th></th></tr></thead><tbody></tbody></table>`);
+                    contracts.forEach(c=>{
+                        table.find('tbody').append(`<tr><td class="px-2 py-2 font-mono">${c.id}</td><td class="px-2 py-2 text-xs">${c.status}</td><td class="px-2 py-2 text-right font-bold">${((c.total||0)-(c.paid||0)).toLocaleString()}</td><td class="px-2 py-2 text-right"><button class="btn-secondary px-2 py-1 text-xs" onclick="app.openDetail('${c.id}');app.closeModal('modal-customer')">Open</button></td></tr>`);
+                    });
+                    body.append(table);
+                }
+                // store last opened customer for export
+                this._lastCustomer = { name: name, phone: phone, contracts: contracts };
+                $('#cust-title').text(`ลูกค้า: ${name}`);
+                $('#modal-customer').removeClass('hidden').addClass('flex');
+            },
+
+            exportCustomerContracts: function(){
+                const c = this._lastCustomer;
+                if(!c || !c.contracts || c.contracts.length === 0){ Swal.fire({ icon: 'info', title: 'ไม่มีสัญญาสำหรับส่งออก' }); return; }
+                const headers = ['id','name','phone','date','status','total','paid','installments','cost','resale'];
+                const rows = [headers.join(',')];
+                c.contracts.forEach(r=>{
+                    const vals = headers.map(h=>`"${String(r[h]||'').replace(/"/g,'""')}"`);
+                    rows.push(vals.join(','));
+                });
+                const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+                this._downloadBlob(`${c.name.replace(/\s+/g,'_')}_contracts.csv`, blob);
+            },
+
+            // Record a call attempt and open the phone URL or Yalecom scheme
+            recordCall: function(phone, customerNameEncoded, contractId){
+                const customerName = decodeURIComponent(customerNameEncoded || '') || '';
+                if(!phone){ Swal.fire({ icon: 'error', title: 'หมายเลขโทรศัพท์ไม่พบ' }); return; }
+                // store call log in localStorage for analytics
+                const key = 'call_log_v1';
+                let logs = [];
+                try{ logs = JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ logs = []; }
+                const timestamp = new Date().toISOString();
+                // determine call URL: prefer YALECOM_SCHEME if set else tel:
+                const url = this.getCallUrl(phone);
+                const method = url && url.startsWith('yalecom:') ? 'yalecom' : 'tel';
+                logs.unshift({ time: timestamp, phone: phone, customer: customerName, contractId: contractId || null, method: method });
+                try{ localStorage.setItem(key, JSON.stringify(logs.slice(0,200))); }catch(e){}
+                // optionally show a brief toast and open the call link
+                try{ window.open(url, '_blank'); }catch(e){ window.location = url; }
+                Swal.fire({ icon: 'success', title: 'กำลังโทร...', text: phone });
+            },
+
+            // construct call URL — supports custom Yalecom scheme if defined in settings
+            getCallUrl: function(phone){
+                // if user configured a YALECOM_CALL_URL template in localStorage (e.g. "yalecom://call?to=%s"), use it
+                try{
+                    const tmpl = localStorage.getItem('yalecom_call_template') || '';
+                    if(tmpl && tmpl.indexOf('%s') !== -1) return tmpl.replace('%s', encodeURIComponent(phone));
+                }catch(e){}
+                // default to tel:
+                return 'tel:' + phone.replace(/\s+/g,'');
+            },
+
+            // Open a contract detail in a floating modal (does not navigate away)
+            openDetailModal: function(id){
+                const c = this.data.contracts.find(x => x.id === id);
+                if(!c){ Swal.fire({ icon: 'error', title: 'ไม่พบสัญญา' }); return; }
+                // populate modal content (reuse cust modal body area for compact detail)
+                const body = $('#cust-body');
+                body.empty();
+                body.append(`<div class="mb-2 font-bold">สัญญา: ${c.id} <span class=\"text-xs text-gray-500 ml-2\">${c.status}</span></div>`);
+                body.append(`<div class=\"text-sm text-gray-700 mb-2\"><strong>ชื่อลูกค้า:</strong> ${c.name || '-'}<br/><strong>บัตรประชาชน:</strong> ${c.nationalId || (c.idCard||'-')}<br/><strong>ที่อยู่:</strong> ${c.address || '-'}</div>`);
+                const phoneBtn = $(`<div class=\"mb-3\"><button class=\"btn-apple btn-primary px-3 py-2 mr-2\" onclick=\"app.recordCall('${c.phone||''}','${encodeURIComponent(c.name||'')}','${c.id}')\">โทรทันที</button><button class=\"btn-secondary px-3 py-2\" onclick=\"app.openDetail('${c.id}');app.closeModal('modal-customer')\">เปิดหน้าเต็ม</button></div>`);
+                body.append(phoneBtn);
+                // payment summary
+                body.append(`<div class=\"mb-3 text-sm text-gray-700\">ยอดคงเหลือ: <strong>${((c.total||0)-(c.paid||0)).toLocaleString()}</strong> • ผ่อน ${c.installments||1} งวด</div>`);
+                // timeline area with quick post
+                body.append('<div class="mb-2"><label class="text-xs text-gray-500">Timeline</label><div class="mt-2" id="modal-detail-timeline"></div></div>');
+                // render timeline
+                const tdiv = $('#modal-detail-timeline');
+                tdiv.empty();
+                if(Array.isArray(c.timeline) && c.timeline.length>0){
+                    c.timeline.forEach(t=>{
+                        tdiv.append(`<div class=\"p-3 bg-gray-50 rounded mb-2 text-sm\"><div class=\"text-xs text-gray-400\">${t.time}</div><div class=\"mt-1\">${t.text}</div></div>`);
+                    });
+                } else {
+                    tdiv.append('<div class="text-xs text-gray-400">ยังไม่มีบันทึก</div>');
+                }
+                // quick add timeline input
+                body.append(`<div class="mt-3 flex gap-2"><input id="modal-tl-input" class="apple-input text-sm flex-1" placeholder="บันทึกข้อความ..." /><button class="btn-apple btn-primary px-3 py-1" onclick="(function(){ const txt=$('#modal-tl-input').val(); if(!txt) return Swal.fire({icon:'error',title:'กรุณากรอกข้อความ'}); const c = app.data.contracts.find(x=>x.id==='${c.id}'); if(!c.timeline) c.timeline = []; c.timeline.unshift({ time: new Date().toLocaleDateString(), text: txt }); app.saveData(); app.openDetailModal('${c.id}'); })()">โพสต์</button></div>`);
+                $('#cust-title').text(`สัญญา ${c.id}`);
+                $('#modal-customer').removeClass('hidden').addClass('flex');
+            },
+
+            // Show call logs modal and render logs
+            showCallLogs: function(){
+                const wrap = $('#call-logs-list'); wrap.empty();
+                let logs = [];
+                try{ logs = JSON.parse(localStorage.getItem('call_log_v1') || '[]'); }catch(e){ logs = []; }
+                if(!logs || logs.length === 0){ wrap.html('<div class="text-xs text-gray-500 p-3">ไม่มีบันทึกการโทร</div>'); }
+                else {
+                    logs.forEach(l => {
+                        const t = $('<div class="p-2 border-b last:border-b-0"></div>');
+                        t.append(`<div class="text-xs text-gray-400">${new Date(l.time).toLocaleString()}</div>`);
+                        t.append(`<div class="text-sm font-bold">${l.customer || '-'} • ${l.phone}</div>`);
+                        t.append(`<div class="text-xs text-gray-500">method: ${l.method || '-'} ${l.contractId? '• '+l.contractId : ''}</div>`);
+                        wrap.append(t);
+                    });
+                }
+                $('#modal-call-logs').removeClass('hidden').addClass('flex');
+            },
+
+            clearCallLogs: function(){
+                if(!confirm('ลบประวัติการโทรทั้งหมด?')) return;
+                try{ localStorage.removeItem('call_log_v1'); }catch(e){}
+                this.showCallLogs();
+            },
+
+            // Show status change logs modal
+            showStatusLogs: function(){
+                const wrap = $('#status-logs-list'); wrap.empty();
+                let logs = [];
+                try{ logs = JSON.parse(localStorage.getItem('status_change_log_v1') || '[]'); }catch(e){ logs = []; }
+                if(!logs || logs.length === 0){ wrap.html('<div class="text-xs text-gray-500 p-3">ไม่มีบันทึก</div>'); }
+                else {
+                    logs.forEach(l => {
+                        const t = $('<div class="p-2 border-b last:border-b-0"></div>');
+                        t.append(`<div class="text-xs text-gray-400">${new Date(l.time).toLocaleString()}</div>`);
+                        t.append(`<div class="text-sm font-bold">Contract ${l.contractId}</div>`);
+                        t.append(`<div class="text-xs text-gray-500">From: <strong>${l.from}</strong> → To: <strong>${l.to}</strong> by <em>${l.by}</em></div>`);
+                        wrap.append(t);
+                    });
+                }
+                $('#modal-status-logs').removeClass('hidden').addClass('flex');
+            },
+
+            clearStatusLogs: function(){
+                if(!confirm('ลบประวัติการเปลี่ยนสถานะทั้งหมด?')) return;
+                try{ localStorage.removeItem('status_change_log_v1'); }catch(e){}
+                this.showStatusLogs();
+            },
+
+            // Load, preview, and save receipt settings
+            loadReceiptSettings: function(){
+                const settings = {
+                    name: localStorage.getItem('rcpt_company_name') || 'บริษัท ที แอสเซท แมเนจเม้นท์ จำกัด',
+                    address: localStorage.getItem('rcpt_company_address') || '123/45 อาคารทีพลัส ชั้น 9 ถนนสุขุมวิท แขวงคลองตัน เขตคลองเตย กรุงเทพฯ 10110',
+                    taxId: localStorage.getItem('rcpt_tax_id') || '010556XXXXXXX'
+                };
+                $('#rcpt-company-name').val(settings.name);
+                $('#rcpt-company-address').val(settings.address);
+                $('#rcpt-tax-id').val(settings.taxId);
+                this.updateReceiptPreview();
+
+                // Add listeners to update preview on input change
+                $('#rcpt-company-name, #rcpt-company-address, #rcpt-tax-id').on('input', this.updateReceiptPreview);
+            },
+            updateReceiptPreview: function(){
+                $('#preview-company-name').text($('#rcpt-company-name').val());
+                $('#preview-company-address').text($('#rcpt-company-address').val());
+                $('#preview-tax-id').text($('#rcpt-tax-id').val());
+                const d = new Date();
+                const key = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}`;
+                $('#preview-rcpt-no').text(`AMC-${key}01-0001`);
+            },
+            saveReceiptSettings: function(){
+                try {
+                    localStorage.setItem('rcpt_company_name', $('#rcpt-company-name').val());
+                    localStorage.setItem('rcpt_company_address', $('#rcpt-company-address').val());
+                    localStorage.setItem('rcpt_tax_id', $('#rcpt-tax-id').val());
+                    Swal.fire({ icon: 'success', title: 'บันทึกการตั้งค่าใบเสร็จแล้ว' });
+                } catch(e) {
+                    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาดในการบันทึก' });
+                }
+            },
+
+            openPaymentModal: function() {
+                const c = this.data.contracts.find(x => x.id === this.data.currentId);
+                if(!c) { Swal.fire({ icon: 'error', title: 'ไม่พบสัญญา', text: 'กรุณาเลือกสัญญาก่อนทำรายการ' }); return; }
+                $('#pay-modal-balance').text(((c.total || 0) - (c.paid || 0)).toLocaleString());
+                this.openModal('modal-payment');
+                this.setPayType('min');
+            },
+
+            setPayType: function(type) {
+                $('.pay-option').removeClass('selected');
+                const $btn = $('#btn-'+type);
+                if($btn.length) $btn.addClass('selected');
+                $('#pay-type').val(type);
+                $('#div-discount').addClass('hidden');
+
+                const c = this.data.contracts.find(x => x.id === this.data.currentId) || { total:0, paid:0, installments:1 };
+                const input = $('#pay-amount');
+                input.prop('readonly', false);
+
+                if(type === 'min') input.val(600);
+                else if(type === 'bill') {
+                    const val = Math.ceil((c.total || 0) / (c.installments || 1)) + 100;
+                    input.val(val);
+                    const next = c.installments ? (Math.ceil(((c.paid || 0)/(c.total || 1))* (c.installments || 1)) + 1) : 1;
+                    $('#lbl-installment').text(`งวด ${next}/${c.installments || 1}`);
+                } else {
+                    $('#div-discount').removeClass('hidden');
+                    input.val(((c.total || 0) - (c.paid || 0)) + 100);
+                    input.prop('readonly', true);
+                }
+            },
+
+            calcCloseAmount: function() {
+                const disc = parseFloat($('#pay-discount').val()) || 0;
+                const c = this.data.contracts.find(x => x.id === this.data.currentId);
+                if(!c) return;
+                const bal = (c.total || 0) - (c.paid || 0);
+                const val = Math.floor(bal * (1-disc)) + 100;
+                $('#pay-amount').val(val);
+            },
+
+            submitPayment: function() {
+                const amt = parseFloat($('#pay-amount').val());
+                if(!amt || amt <= 0) { Swal.fire({ icon: 'error', title: 'จำนวนเงินไม่ถูกต้อง' }); return; }
+                const c = this.data.contracts.find(x => x.id === this.data.currentId);
+                if(!c) { Swal.fire({ icon: 'error', title: 'ไม่พบสัญญา' }); return; }
+
+                let rcpNo = null;
+                if($('#req-receipt').is(':checked')) {
+                    // Use date-based receipt counter that resets MONTHLY
+                    const d = new Date();
+                    const key = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}`;
+                    const counterKey = `receipt_counter_${key}`;
+                    let cnt = 0;
+                    try{ cnt = parseInt(localStorage.getItem(counterKey) || '0', 10) || 0; }catch(e){ cnt = 0; }
+                    cnt += 1;
+                    try{ localStorage.setItem(counterKey, String(cnt)); }catch(e){}
+                    const run = String(cnt).padStart(4, '0');
+                    rcpNo = `AMC-${key}-${run}`;
+                }
+
+                c.paid = (c.paid || 0) + (amt - 100);
+                if(!Array.isArray(c.payments)) c.payments = [];
+                c.payments.unshift({ date: new Date().toLocaleDateString(), type: $('#pay-type').val() || 'unknown', amount: amt, receipt: rcpNo });
+                if((c.paid || 0) >= (c.total || 0)) c.status = 'Closed';
+
+                if(!c.timeline) c.timeline = [];
+                let log = `💰 ชำระเงิน ${Number(amt).toLocaleString()} บาท`;
+                if(rcpNo) log += ` (ออกใบเสร็จ: ${rcpNo})`;
+                c.timeline.unshift({ time: new Date().toLocaleDateString(), text: log });
+
+                this.saveData();
+                this.closeModal('modal-payment');
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', text: rcpNo ? `ใบเสร็จ: ${rcpNo}` : '' });
+                this.openDetail(this.data.currentId);
+                this.renderDashboard();
+            }
+        };
+
+        // expose for automated tests and external scripts
+        try{ window.app = app; }catch(e){}
+        $(document).ready(() => app.init());
+    </script>
+</body>
+</html>

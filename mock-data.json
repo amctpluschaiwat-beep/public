@@ -1,0 +1,11 @@
+{
+  "contracts": [
+    { "id": "C-MOCK-1001", "name": "สมชาย ทดลอง", "phone": "080-000-0001", "date": "2025-01-10", "status": "Active", "total": 25000, "paid": 5000, "installments": 12, "cost": 12000, "resale": 0, "payments": [], "timeline": [] },
+    { "id": "C-MOCK-1002", "name": "วิภา ตัวอย่าง", "phone": "080-000-0002", "date": "2024-06-20", "status": "Approved", "total": 18000, "paid": 0, "installments": 10, "cost": 9000, "resale": 0, "payments": [], "timeline": [] },
+    { "id": "C-MOCK-1003", "name": "สมพร QC", "phone": "080-000-0003", "date": "2023-11-05", "status": "Asset Return", "total": 15000, "paid": 12000, "installments": 6, "cost": 8000, "resale": 6000, "payments": [], "timeline": [] }
+  ],
+  "assets": [
+    { "assetId": "C-MOCK-1001-AST", "contractId": "C-MOCK-1001", "model": "iPhone 14 Pro", "status": "leased", "cost": 12000, "resale": 0 },
+    { "assetId": "C-MOCK-1003-AST", "contractId": "C-MOCK-1003", "model": "iPhone 13", "status": "stock", "cost": 8000, "resale": 6000 }
+  ]
+}

@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Use repository secret for the upload token in CI. Add UPLOAD_TOKEN in your repo Secrets.
+      UPLOAD_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd public
+          npm ci
+
+      - name: Install Playwright browsers
+        run: |
+          cd public
+          npx playwright install --with-deps
+
+      - name: Start server
+        run: |
+          cd public
+          export DEV_UPLOAD_ANY=1
+          # UPLOAD_TOKEN is provided from repo secrets via job env
+          nohup node server.js > server.log 2>&1 &
+          # wait for server to be ready
+          for i in {1..30}; do
+            if curl -sSf http://localhost:3000 >/dev/null; then echo "server ready"; break; fi
+            sleep 1
+          done
+
+      - name: Run Playwright E2E
+        run: |
+          cd public
+          npx playwright test --reporter=github
+
+      - name: Upload server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: public/server.log
