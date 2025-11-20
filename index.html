@@ -1415,7 +1415,7 @@
                         const today = new Date();
                         const mockContracts = [
                             { 
-                                id: 'C-2001', 
+                                id: 'C-3001', 
                                 name: 'ทดสอบ ระบบ', 
                                 phone: '081-111-1111',
                                 phoneRef: '081-111-1112',
@@ -1445,7 +1445,7 @@
                                 createdAt: new Date('2024-03-01').toISOString()
                             },
                             { 
-                                id: 'C-2002', 
+                                id: 'C-3002', 
                                 name: 'ตัวอย่าง ข้อมูล', 
                                 phone: '082-222-2222',
                                 phoneRef: '082-222-2223',
@@ -1475,7 +1475,7 @@
                                 createdAt: new Date('2024-04-15').toISOString()
                             },
                             { 
-                                id: 'C-2003', 
+                                id: 'C-3003', 
                                 name: 'ตัวอย่าง สอง', 
                                 phone: '083-333-3333',
                                 phoneRef: '083-333-3334',
@@ -1505,7 +1505,7 @@
                                 createdAt: new Date('2023-12-01').toISOString()
                             },
                             { 
-                                id: 'C-2004', 
+                                id: 'C-3004', 
                                 name: 'ทดสอบ ค้างชำระ', 
                                 phone: '084-444-4444',
                                 phoneRef: '084-444-4445',
@@ -1535,7 +1535,7 @@
                                 createdAt: new Date('2023-06-01').toISOString()
                             },
                             { 
-                                id: 'C-2005', 
+                                id: 'C-3005', 
                                 name: 'ลูกค้า ยกเลิก', 
                                 phone: '085-555-5555',
                                 phoneRef: '085-555-5556',
@@ -1568,14 +1568,18 @@
                         
                         // Check for duplicates before adding
                         let added = 0;
+                        console.log('=== LOAD MOCK DATA DEBUG ===');
                         console.log('Before adding mock data:', this.data.contracts.length);
+                        console.log('Existing contract IDs:', this.data.contracts.map(c => c.id));
                         mockContracts.forEach(mock => {
                             const exists = this.data.contracts.find(c => c.id === mock.id);
-                            console.log(`Checking ${mock.id}, exists:`, exists);
+                            console.log(`Checking ${mock.id}, exists:`, !!exists);
                             if (!exists) {
                                 this.data.contracts.push(mock);
                                 added++;
-                                console.log(`Added ${mock.id}`);
+                                console.log(`✓ Added ${mock.id}`);
+                            } else {
+                                console.log(`✗ Skipped ${mock.id} (duplicate)`);
                             }
                         });
                         
