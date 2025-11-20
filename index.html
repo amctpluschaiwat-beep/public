@@ -689,10 +689,11 @@
                     <div class="flex items-center gap-2">
                         <button onclick="app.navTo('list')" class="btn-secondary px-4 py-2 text-xs flex items-center gap-2"><i class="fas fa-chevron-left"></i> กลับ</button>
                         <div class="glass-panel p-1 flex gap-1">
-                            <button onclick="app.skipTo('col-customer')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">รายละเอียดลูกค้า</button>
-                            <button onclick="app.skipTo('col-images')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">รูปภาพ</button>
-                            <button onclick="app.skipTo('col-payment')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">ผ่อนชำระ</button>
-                            <button onclick="app.skipTo('col-timeline')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">Timeline</button>
+                            <button onclick="app.skipTo('section-customer')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">ข้อมูลลูกค้า</button>
+                            <button onclick="app.skipTo('section-asset')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">สินทรัพย์</button>
+                            <button onclick="app.skipTo('section-installment')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">ตารางผ่อน</button>
+                            <button onclick="app.skipTo('section-calllogs')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">Call Logs</button>
+                            <button onclick="app.skipTo('section-timeline')" class="px-4 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-white/50">Timeline</button>
                         </div>
                     </div>
                     <div>
@@ -700,80 +701,179 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-12 gap-6">
-                    <div id="col-customer" class="col-span-12 md:col-span-3 space-y-6">
-                        <div class="glass-panel p-6">
-                            <h3 class="font-bold text-lg text-gray-900 mb-2">รายละเอียดลูกค้า</h3>
-                            <p class="text-sm"><strong id="det-name">-</strong></p>
-                            <p class="text-xs text-gray-500 font-mono mt-1" id="det-id">C-XXXX</p>
-                            <div class="space-y-2 text-sm text-gray-600 mt-4">
-                                <p><span class="text-gray-600">เบอร์โทร:</span> <span class="font-bold" id="det-phone">-</span></p>
-                                <p><span class="text-gray-600">วันที่สัญญา:</span> <span id="det-date">-</span></p>
-                            </div>
+                <!-- Customer Information Section -->
+                <div id="section-customer" class="glass-panel p-6 mb-6">
+                    <h3 class="font-bold text-xl text-gray-900 mb-4 border-b pb-2"><i class="fas fa-user mr-2"></i>ข้อมูลลูกค้า</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">ชื่อ-สกุล</p>
+                            <p class="text-base font-bold" id="det-name">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">เลขที่สัญญา</p>
+                            <p class="text-base font-mono font-bold" id="det-id">C-XXXX</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">เลขบัตรประชาชน</p>
+                            <p class="text-base font-mono" id="det-national-id">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">เบอร์โทรศัพท์</p>
+                            <p class="text-base font-mono" id="det-phone">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">เบอร์โทรอ้างอิง</p>
+                            <p class="text-base font-mono" id="det-phone-ref">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">วันที่ทำสัญญา</p>
+                            <p class="text-base" id="det-date">-</p>
+                        </div>
+                        <div class="md:col-span-3">
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">ที่อยู่ติดต่อ</p>
+                            <p class="text-sm" id="det-address">-</p>
+                        </div>
+                        <div class="md:col-span-3">
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">ที่อยู่ที่ทำงาน</p>
+                            <p class="text-sm" id="det-address-work">-</p>
+                        </div>
+                        <div class="md:col-span-3">
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">ที่อยู่ตามบัตรประชาชน</p>
+                            <p class="text-sm" id="det-address-idcard">-</p>
                         </div>
                     </div>
+                </div>
 
-                    <div id="col-images" class="col-span-12 md:col-span-3 space-y-6">
-                        <div class="glass-panel p-6">
-                            <h3 class="font-bold text-lg text-gray-900 mb-2">รูปภาพสัญญา / แนบไฟล์</h3>
-                            <div id="attachments" class="space-y-2">
-                                <p class="text-xs text-gray-400">ยังไม่มีไฟล์แนบ</p>
-                                <div class="mt-2">
-                                    <label class="btn-secondary inline-block px-3 py-2 cursor-pointer">
-                                        แนบไฟล์
-                                        <input type="file" class="hidden attach-file-input" onchange="app.addAttachment(event)">
-                                    </label>
-                                </div>
-                            </div>
+                <!-- Asset Information Section -->
+                <div id="section-asset" class="glass-panel p-6 mb-6">
+                    <h3 class="font-bold text-xl text-gray-900 mb-4 border-b pb-2"><i class="fas fa-mobile-alt mr-2"></i>ข้อมูลสินทรัพย์</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">รุ่นสินค้า</p>
+                            <p class="text-base font-bold" id="det-asset-model">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">ความจุ</p>
+                            <p class="text-base" id="det-asset-capacity">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">IMEI / Serial</p>
+                            <p class="text-base font-mono" id="det-asset-imei">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">ต้นทุนสินค้า</p>
+                            <p class="text-base font-bold text-orange-600" id="det-asset-cost">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">เงินดาวน์</p>
+                            <p class="text-base font-bold text-green-600" id="det-down-payment">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">ค่างวด/เดือน</p>
+                            <p class="text-base font-bold text-blue-600" id="det-monthly-payment">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">งวดที่ชำระครั้งแรก</p>
+                            <p class="text-base" id="det-first-installment">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold mb-1">จำนวนงวด</p>
+                            <p class="text-base" id="det-installments">-</p>
                         </div>
                     </div>
+                </div>
 
-                    <div id="col-payment" class="col-span-12 md:col-span-3 space-y-6">
-                        <div class="glass-panel p-6">
-                            <h3 class="font-bold text-lg text-gray-900 mb-2">การชำระ & ต้นทุน</h3>
-                            <p class="text-sm text-gray-600">ยอดคงเหลือ: <span id="det-balance">0.00</span></p>
-                            <p class="text-sm text-gray-600">ต้นทุนสินค้า: <span id="det-cost">-</span></p>
+                <!-- Payment Progress -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="glass-panel p-6">
+                        <h3 class="font-bold text-lg text-gray-900 mb-4"><i class="fas fa-chart-line mr-2"></i>ความคืบหน้าการชำระ</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">ยอดรวม</span>
+                                <span class="text-lg font-bold" id="det-total">0 ฿</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">ชำระแล้ว</span>
+                                <span class="text-lg font-bold text-green-600" id="det-paid">0 ฿</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">ยอดคงเหลือ</span>
+                                <span class="text-lg font-bold text-red-600" id="det-balance">0 ฿</span>
+                            </div>
                             <div class="mt-3">
-                                <label class="text-xs text-gray-500 block">ความคืบหน้าการผ่อน</label>
-                                <div class="w-full bg-gray-100 rounded-full h-4 mt-2 overflow-hidden">
-                                    <div id="payment-progress-bar" class="h-4 bg-blue-400 w-0"></div>
+                                <div class="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                                    <div id="payment-progress-bar" class="h-6 bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold"></div>
                                 </div>
-                                <div class="text-xs text-gray-500 mt-1">ชำระแล้ว <span id="payment-percent">0%</span></div>
-                            </div>
-                            <div class="mt-4">
-                                <button onclick="app.openPaymentModal()" class="btn-apple btn-primary px-4 py-2 mr-2"><i class="fas fa-credit-card mr-2"></i> ชำระเงิน</button>
-                            </div>
-
-                            <div class="mt-6 grid grid-cols-1 gap-2">
-                                <button onclick="app.updateStatus('Closed')" class="btn-secondary py-2 text-xs hover:text-red-600">ปิดบัญชี</button>
-                                <button onclick="app.updateStatus('Asset Return')" class="btn-secondary py-2 text-xs hover:text-orange-600">คืนเครื่อง</button>
-                                <button onclick="app.updateStatus('Cancelled')" class="btn-secondary py-2 text-xs">ยกเลิกสัญญา</button>
-                            </div>
-                            <div class="mt-4">
-                                <h4 class="font-bold text-sm mb-2">ประวัติการชำระเงิน</h4>
-                                <div class="overflow-auto max-h-44 bg-white/50 p-2 rounded">
-                                    <table class="w-full text-sm text-left" id="mini-history">
-                                        <thead class="text-xs text-gray-500"><tr><th class="px-2 py-1">วันที่</th><th class="px-2 py-1">ประเภท</th><th class="px-2 py-1 text-right">จำนวน</th><th class="px-2 py-1">ใบเสร็จ</th></tr></thead>
-                                        <tbody></tbody>
-                                    </table>
-                                </div>
+                                <p class="text-xs text-gray-500 mt-2 text-center">ชำระแล้ว <span id="payment-percent">0%</span></p>
                             </div>
                         </div>
                     </div>
-
-                    <div id="col-timeline" class="col-span-12 md:col-span-3 space-y-6">
-                        <div class="glass-panel p-6">
-                            <h3 class="font-bold text-lg text-gray-900 mb-2">Timeline</h3>
-                            <div class="flex gap-3 mb-6">
-                                <input type="text" id="timeline-input" class="apple-input w-full text-sm" placeholder="บันทึกข้อความ...">
-                                <button onclick="app.addTimeline()" class="btn-apple btn-primary px-4 text-xs">โพสต์</button>
-                                <label class="btn-secondary px-3 py-2 cursor-pointer">
-                                    <i class="fas fa-paperclip mr-2"></i> แนบ
-                                    <input type="file" id="timeline-file" class="hidden" multiple>
-                                </label>
-                            </div>
-                            <div class="space-y-4 pl-2" id="timeline-feed"></div>
+                    <div class="glass-panel p-6">
+                        <h3 class="font-bold text-lg text-gray-900 mb-4"><i class="fas fa-cog mr-2"></i>จัดการสัญญา</h3>
+                        <div class="space-y-2">
+                            <button onclick="app.openPaymentModal()" class="btn-apple btn-primary w-full py-3"><i class="fas fa-credit-card mr-2"></i>ชำระเงิน</button>
+                            <button onclick="app.updateStatus('Closed')" class="btn-secondary w-full py-2 text-xs hover:bg-gray-100">ปิดบัญชี (Closed)</button>
+                            <button onclick="app.updateStatus('Asset Return')" class="btn-secondary w-full py-2 text-xs hover:bg-orange-50 hover:text-orange-600">คืนสินทรัพย์ (Asset Return)</button>
+                            <button onclick="app.updateStatus('Cancelled')" class="btn-secondary w-full py-2 text-xs hover:bg-red-50 hover:text-red-600">ยกเลิกสัญญา (Cancelled)</button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Installment Schedule Table -->
+                <div id="section-installment" class="glass-panel p-6 mb-6">
+                    <h3 class="font-bold text-xl text-gray-900 mb-4 border-b pb-2"><i class="fas fa-calendar-alt mr-2"></i>ตารางการผ่อนชำระ</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-blue-50 text-blue-800">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-bold">งวดที่</th>
+                                    <th class="px-4 py-3 text-left font-bold">วันที่กำหนดชำระ</th>
+                                    <th class="px-4 py-3 text-right font-bold">จำนวนเงิน</th>
+                                    <th class="px-4 py-3 text-left font-bold">วันที่ชำระจริง</th>
+                                    <th class="px-4 py-3 text-center font-bold">สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="installment-schedule-body" class="divide-y divide-gray-100">
+                                <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">ไม่มีข้อมูลตารางผ่อน</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Call Logs Section -->
+                <div id="section-calllogs" class="glass-panel p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="font-bold text-xl text-gray-900"><i class="fas fa-phone mr-2"></i>Call Logs (บันทึกการติดตาม)</h3>
+                        <button onclick="app.addCallLog()" class="btn-apple btn-primary px-4 py-2"><i class="fas fa-plus mr-2"></i>เพิ่ม Call Log</button>
+                    </div>
+                    <div id="call-logs-list" class="space-y-3">
+                        <p class="text-gray-400 text-center py-8">ยังไม่มีบันทึกการโทร</p>
+                    </div>
+                </div>
+
+                <!-- Attachments Section -->
+                <div class="glass-panel p-6 mb-6">
+                    <h3 class="font-bold text-xl text-gray-900 mb-4 border-b pb-2"><i class="fas fa-paperclip mr-2"></i>ไฟล์แนบ</h3>
+                    <div id="attachments" class="space-y-2">
+                        <p class="text-xs text-gray-400">ยังไม่มีไฟล์แนบ</p>
+                        <div class="mt-2">
+                            <label class="btn-secondary inline-block px-4 py-2 cursor-pointer">
+                                <i class="fas fa-upload mr-2"></i>แนบไฟล์
+                                <input type="file" class="hidden attach-file-input" onchange="app.addAttachment(event)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Section -->
+                <div id="section-timeline" class="glass-panel p-6 mb-6">
+                    <h3 class="font-bold text-xl text-gray-900 mb-4 border-b pb-2"><i class="fas fa-history mr-2"></i>Timeline (ประวัติการทำรายการ)</h3>
+                    <div class="flex gap-3 mb-6">
+                        <input type="text" id="timeline-input" class="apple-input flex-1 text-sm" placeholder="เพิ่มบันทึก...">
+                        <button onclick="app.addTimeline()" class="btn-apple btn-primary px-6">เพิ่ม</button>
+                    </div>
+                    <div class="space-y-3" id="timeline-feed">
+                        <p class="text-gray-400 text-center py-4">ยังไม่มีประวัติ</p>
                     </div>
                 </div>
             </div>
@@ -1831,14 +1931,72 @@
                 $('#view-detail').removeClass('hidden');
                 $('#page-title').text('Workstation');
 
+                // Customer Information
                 $('#det-name').text(c.name || '-');
                 $('#det-id').text(id || '-');
+                $('#det-national-id').text(c.nationalId || '-');
                 $('#det-phone').text(c.phone || '-');
+                $('#det-phone-ref').text(c.phoneRef || '-');
                 $('#det-date').text(c.date || '-');
-                $('#det-balance').text(((c.total || 0) - (c.paid || 0)).toLocaleString());
+                $('#det-address').text(c.address || '-');
+                $('#det-address-work').text(c.addressWork || '-');
+                $('#det-address-idcard').text(c.addressIdCard || '-');
+                
+                // Asset Information
+                $('#det-asset-model').text(c.assetModel || '-');
+                $('#det-asset-capacity').text(c.assetCapacity || '-');
+                $('#det-asset-imei').text(c.assetIMEI || '-');
+                $('#det-asset-cost').text(c.assetCost ? c.assetCost.toLocaleString() + ' ฿' : '-');
+                $('#det-down-payment').text(c.downPayment ? c.downPayment.toLocaleString() + ' ฿' : '-');
+                $('#det-monthly-payment').text(c.monthlyPayment ? c.monthlyPayment.toLocaleString() + ' ฿' : '-');
+                $('#det-first-installment').text(c.firstInstallmentDate || '-');
+                $('#det-installments').text(c.installments ? c.installments + ' งวด' : '-');
+                
+                // Payment Summary
+                const total = c.total || 0;
+                const paid = c.paid || 0;
+                const balance = total - paid;
+                $('#det-total').text(total.toLocaleString() + ' ฿');
+                $('#det-paid').text(paid.toLocaleString() + ' ฿');
+                $('#det-balance').text(balance.toLocaleString() + ' ฿');
                 $('#det-status').text(c.status || '-');
                 $('#det-cost').text((c.cost || 0).toLocaleString());
-                // attachments (render thumbnails / links if uploaded)
+                
+                // Payment Progress Bar
+                try{
+                    const pct = total > 0 ? Math.min(100, Math.round((paid/total)*100)) : 0;
+                    $('#payment-progress-bar').css('width', pct + '%').text(pct + '%');
+                    $('#payment-percent').text(pct + '%');
+                }catch(e){ }
+                
+                // Installment Schedule Table
+                const scheduleBody = $('#installment-schedule-body');
+                scheduleBody.empty();
+                if(Array.isArray(c.installmentSchedule) && c.installmentSchedule.length > 0) {
+                    c.installmentSchedule.forEach(inst => {
+                        const statusBadge = inst.status === 'paid' ? 
+                            '<span class="badge bg-green-100 text-green-700 px-2 py-1 rounded text-xs">ชำระแล้ว</span>' :
+                            '<span class="badge bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs">ยังไม่ชำระ</span>';
+                        scheduleBody.append(`
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-4 py-3">${inst.period}</td>
+                                <td class="px-4 py-3">${inst.dueDate}</td>
+                                <td class="px-4 py-3 text-right font-bold">${inst.amount.toLocaleString()} ฿</td>
+                                <td class="px-4 py-3">${inst.paidDate || '-'}</td>
+                                <td class="px-4 py-3 text-center">${statusBadge}</td>
+                            </tr>
+                        `);
+                    });
+                } else {
+                    scheduleBody.html('<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">ไม่มีข้อมูลตารางผ่อน</td></tr>');
+                }
+                
+                // Call Logs
+                this.renderCallLogs(c);
+                // Call Logs
+                this.renderCallLogs(c);
+                
+                // Attachments
                 const att = $('#attachments');
                 att.empty();
                     if(Array.isArray(c.attachments) && c.attachments.length>0){
@@ -1889,6 +2047,138 @@
                 }catch(e){ }
 
                 this.renderTimeline(c);
+            },
+
+            renderCallLogs: function(c) {
+                const logsList = $('#call-logs-list');
+                logsList.empty();
+                
+                if(!c.callLogs) c.callLogs = [];
+                
+                if(c.callLogs.length === 0) {
+                    logsList.html('<p class="text-gray-400 text-center py-8">ยังไม่มีบันทึกการโทร</p>');
+                    return;
+                }
+                
+                c.callLogs.forEach((log, idx) => {
+                    const statusClass = log.result === 'success' ? 'bg-green-50 border-green-200' : 
+                                       log.result === 'no-answer' ? 'bg-yellow-50 border-yellow-200' :
+                                       'bg-red-50 border-red-200';
+                    const statusIcon = log.result === 'success' ? 'fa-check-circle text-green-600' : 
+                                      log.result === 'no-answer' ? 'fa-phone-slash text-yellow-600' :
+                                      'fa-times-circle text-red-600';
+                    
+                    logsList.append(`
+                        <div class="${statusClass} border p-4 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas ${statusIcon}"></i>
+                                    <span class="font-bold text-sm">${log.date} ${log.time}</span>
+                                </div>
+                                <button onclick="app.deleteCallLog(${idx})" class="text-red-500 hover:text-red-700 text-xs">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-700 mb-1"><strong>ผล:</strong> ${log.result === 'success' ? 'ติดต่อได้' : log.result === 'no-answer' ? 'ไม่รับสาย' : 'ไม่สำเร็จ'}</p>
+                            <p class="text-sm text-gray-600">${log.notes || 'ไม่มีบันทึก'}</p>
+                            ${log.nextFollowUp ? `<p class="text-xs text-blue-600 mt-2"><i class="fas fa-calendar mr-1"></i>ติดตามครั้งถัดไป: ${log.nextFollowUp}</p>` : ''}
+                        </div>
+                    `);
+                });
+            },
+            
+            addCallLog: function() {
+                const c = this.data.contracts.find(x => x.id === this.data.currentId);
+                if(!c) return;
+                
+                const self = this;
+                Swal.fire({
+                    title: 'บันทึกการโทร',
+                    html: `
+                        <div class="space-y-4 text-left">
+                            <div>
+                                <label class="text-xs font-bold text-gray-600 block mb-1">ผลการติดต่อ</label>
+                                <select id="call-result" class="apple-input w-full">
+                                    <option value="success">ติดต่อได้</option>
+                                    <option value="no-answer">ไม่รับสาย</option>
+                                    <option value="failed">ไม่สำเร็จ</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-600 block mb-1">บันทึก</label>
+                                <textarea id="call-notes" class="apple-input w-full" rows="3" placeholder="รายละเอียดการสนทนา..."></textarea>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-gray-600 block mb-1">นัดติดตามครั้งถัดไป (ถ้าต้องการ)</label>
+                                <input type="date" id="call-next-followup" class="apple-input w-full">
+                            </div>
+                        </div>
+                    `,
+                    width: '500px',
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึก',
+                    cancelButtonText: 'ยกเลิก',
+                    preConfirm: () => {
+                        const result = $('#call-result').val();
+                        const notes = $('#call-notes').val();
+                        const nextFollowUp = $('#call-next-followup').val();
+                        
+                        if(!notes.trim()) {
+                            Swal.showValidationMessage('กรุณาบันทึกรายละเอียด');
+                            return false;
+                        }
+                        
+                        return { result, notes, nextFollowUp };
+                    }
+                }).then(result => {
+                    if(result.isConfirmed) {
+                        if(!c.callLogs) c.callLogs = [];
+                        
+                        const now = new Date();
+                        const callLog = {
+                            date: now.toLocaleDateString('th-TH'),
+                            time: now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                            result: result.value.result,
+                            notes: result.value.notes,
+                            nextFollowUp: result.value.nextFollowUp,
+                            by: (self.currentUser && self.currentUser.username) || 'system'
+                        };
+                        
+                        c.callLogs.unshift(callLog);
+                        
+                        // Add to timeline
+                        if(!c.timeline) c.timeline = [];
+                        c.timeline.unshift({ 
+                            time: now.toLocaleDateString('th-TH'), 
+                            text: `📞 โทรติดตามลูกค้า: ${result.value.notes.substring(0, 50)}${result.value.notes.length > 50 ? '...' : ''}` 
+                        });
+                        
+                        self.saveData();
+                        self.openDetail(self.data.currentId);
+                        Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1500, showConfirmButton: false });
+                    }
+                });
+            },
+            
+            deleteCallLog: function(idx) {
+                const c = this.data.contracts.find(x => x.id === this.data.currentId);
+                if(!c || !c.callLogs) return;
+                
+                const self = this;
+                Swal.fire({
+                    title: 'ลบบันทึกนี้?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'ลบ',
+                    cancelButtonText: 'ยกเลิก'
+                }).then(result => {
+                    if(result.isConfirmed) {
+                        c.callLogs.splice(idx, 1);
+                        self.saveData();
+                        self.openDetail(self.data.currentId);
+                        Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1500, showConfirmButton: false });
+                    }
+                });
             },
 
             renderAssets: function(type) {
@@ -2010,21 +2300,54 @@
                     const oldStatus = c.status;
                     c.status = status;
                     if(!c.timeline) c.timeline = [];
+                    
                     if(status === 'Asset Return'){
-                        c.timeline.unshift({ time: new Date().toLocaleDateString(), text: '🔁 คืนเครื่อง → ย้ายไป STOCK' });
+                        c.timeline.unshift({ time: new Date().toLocaleDateString('th-TH'), text: '🔁 คืนสินทรัพย์ → ย้ายไป STOCK' });
+                        
+                        // Create or update asset in STOCK
                         const assetId = (c.id || 'C-') + '-AST';
-                        const exists = self.data.assets.find(a => a.assetId === assetId);
-                        if(!exists){
-                            const ast = { assetId: assetId, contractId: c.id, model: c.model || 'iPhone 15 Pro', status: 'stock', cost: c.cost || 0, resale: c.resale || 0, movedAt: new Date().toLocaleString() };
-                            self.data.assets.push(ast);
-                            c._assetAddedId = assetId;
+                        let asset = self.data.assets.find(a => a.assetId === assetId);
+                        
+                        if(!asset){
+                            // Create new asset
+                            asset = { 
+                                assetId: assetId, 
+                                contractId: c.id, 
+                                model: c.assetModel || c.model || 'Unknown Model', 
+                                status: 'stock', 
+                                cost: c.assetCost || c.cost || 0, 
+                                resale: c.resale || Math.round((c.assetCost || c.cost || 0) * 0.7), 
+                                returnedAt: new Date().toLocaleString(),
+                                capacity: c.assetCapacity || '',
+                                imei: c.assetIMEI || ''
+                            };
+                            self.data.assets.push(asset);
+                            console.log('✓ Created new asset in STOCK:', assetId);
+                        } else {
+                            // Update existing asset to stock
+                            asset.status = 'stock';
+                            asset.returnedAt = new Date().toLocaleString();
+                            asset.model = c.assetModel || asset.model;
+                            asset.capacity = c.assetCapacity || asset.capacity;
+                            asset.imei = c.assetIMEI || asset.imei;
+                            console.log('✓ Updated asset to STOCK:', assetId);
                         }
+                        
+                        c._assetAddedId = assetId;
+                        
+                        Swal.fire({ 
+                            icon: 'success', 
+                            title: 'คืนสินทรัพย์สำเร็จ', 
+                            html: `สินทรัพย์ <strong>${asset.model}</strong><br>ถูกย้ายไป STOCK แล้ว<br><small>รหัส: ${assetId}</small>`,
+                            timer: 3000
+                        });
+                        
                     } else if(status === 'Closed'){
-                        c.timeline.unshift({ time: new Date().toLocaleDateString(), text: '🔒 ปิดบัญชี' });
+                        c.timeline.unshift({ time: new Date().toLocaleDateString('th-TH'), text: '🔒 ปิดบัญชี' });
                     } else if(status === 'Cancelled'){
-                        c.timeline.unshift({ time: new Date().toLocaleDateString(), text: '❌ ยกเลิกสัญญา' });
+                        c.timeline.unshift({ time: new Date().toLocaleDateString('th-TH'), text: '❌ ยกเลิกสัญญา' });
                     } else {
-                        c.timeline.unshift({ time: new Date().toLocaleDateString(), text: `🔁 เปลี่ยนสถานะเป็น ${status}` });
+                        c.timeline.unshift({ time: new Date().toLocaleDateString('th-TH'), text: `🔁 เปลี่ยนสถานะเป็น ${status}` });
                     }
                     // record status change to centralized log
                     try{
