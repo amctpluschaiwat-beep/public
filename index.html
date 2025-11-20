@@ -1568,13 +1568,19 @@
                         
                         // Check for duplicates before adding
                         let added = 0;
+                        console.log('Before adding mock data:', this.data.contracts.length);
                         mockContracts.forEach(mock => {
                             const exists = this.data.contracts.find(c => c.id === mock.id);
+                            console.log(`Checking ${mock.id}, exists:`, exists);
                             if (!exists) {
                                 this.data.contracts.push(mock);
                                 added++;
+                                console.log(`Added ${mock.id}`);
                             }
                         });
+                        
+                        console.log('After adding mock data:', this.data.contracts.length);
+                        console.log('All contracts:', this.data.contracts);
                         
                         this.saveData();
                         this.renderTable();
