@@ -1681,21 +1681,17 @@
                             }
                         ];
                         
-                        // Check for duplicates before adding
-                        let added = 0;
+                        // Remove existing mock data (C-3001 to C-3005) before re-loading
                         console.log('=== LOAD MOCK DATA DEBUG ===');
-                        console.log('Before adding mock data:', this.data.contracts.length);
-                        console.log('Existing contract IDs:', this.data.contracts.map(c => c.id));
+                        console.log('Before cleanup:', this.data.contracts.length);
+                        const mockIds = mockContracts.map(m => m.id);
+                        this.data.contracts = this.data.contracts.filter(c => !mockIds.includes(c.id));
+                        console.log('After removing old mock data:', this.data.contracts.length);
+                        
+                        // Add fresh mock data
                         mockContracts.forEach(mock => {
-                            const exists = this.data.contracts.find(c => c.id === mock.id);
-                            console.log(`Checking ${mock.id}, exists:`, !!exists);
-                            if (!exists) {
-                                this.data.contracts.push(mock);
-                                added++;
-                                console.log(`✓ Added ${mock.id}`);
-                            } else {
-                                console.log(`✗ Skipped ${mock.id} (duplicate)`);
-                            }
+                            this.data.contracts.push(mock);
+                            console.log(`✓ Added ${mock.id}`);
                         });
                         
                         console.log('After adding mock data:', this.data.contracts.length);
